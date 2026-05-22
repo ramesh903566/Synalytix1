@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Settings - Synalytix</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Arimo:wght@400;600&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "surface-variant": "#e0e3e5",
+                        "on-secondary-fixed-variant": "#03513d",
+                        "on-primary-container": "#e9e5ff",
+                        "secondary-fixed-dim": "#92d4ba",
+                        "primary-fixed": "#e2dfff",
+                        "on-primary-fixed": "#0f0069",
+                        "surface-container-lowest": "#ffffff",
+                        "on-tertiary-fixed": "#151546",
+                        "tertiary-container": "#636398",
+                        "surface-container": "#eceef0",
+                        "on-error-container": "#93000a",
+                        "surface-container-highest": "#e0e3e5",
+                        "surface-dim": "#d8dadc",
+                        "primary-fixed-dim": "#c3c0ff",
+                        "on-primary-fixed-variant": "#3424ca",
+                        "on-tertiary-fixed-variant": "#414174",
+                        "secondary-fixed": "#adf0d5",
+                        "tertiary-fixed-dim": "#c2c1fd",
+                        "primary": "#3e32d3",
+                        "on-tertiary-container": "#e8e5ff",
+                        "on-secondary": "#ffffff",
+                        "on-background": "#191c1e",
+                        "tertiary-fixed": "#e2dfff",
+                        "outline": "#777587",
+                        "on-error": "#ffffff",
+                        "inverse-on-surface": "#eff1f3",
+                        "background": "#f7f9fb",
+                        "secondary": "#276954",
+                        "primary-container": "#5850ec",
+                        "on-secondary-fixed": "#002117",
+                        "inverse-primary": "#c3c0ff",
+                        "surface-bright": "#f7f9fb",
+                        "on-primary": "#ffffff",
+                        "outline-variant": "#c7c4d8",
+                        "on-surface": "#191c1e",
+                        "surface-container-high": "#e6e8ea",
+                        "on-tertiary": "#ffffff",
+                        "inverse-surface": "#2d3133",
+                        "error-container": "#ffdad6",
+                        "surface": "#f7f9fb",
+                        "secondary-container": "#abeed2",
+                        "surface-tint": "#4e44e2",
+                        "on-secondary-container": "#2c6e58",
+                        "on-surface-variant": "#464555",
+                        "error": "#ba1a1a",
+                        "tertiary": "#4b4b7e",
+                        "surface-container-low": "#f2f4f6"
+                    },
+                    borderRadius: {
+                        DEFAULT: "0.25rem",
+                        lg: "0.5rem",
+                        xl: "0.75rem",
+                        full: "9999px"
+                    },
+                    spacing: {
+                        "margin-safe": "32px",
+                        "gutter": "16px",
+                        "container-padding": "24px",
+                        "grid-unit": "24px"
+                    },
+                    fontFamily: {
+                        "headline-lg-mobile": ["Anton"],
+                        "stats-md": ["Bebas Neue"],
+                        "label-sm": ["Arimo"],
+                        "headline-lg": ["Anton"],
+                        "display-xl": ["Anton"],
+                        "body-md": ["Bebas Neue"]
+                    },
+                    fontSize: {
+                        "headline-lg-mobile": ["24px", { lineHeight: "32px", fontWeight: "400" }],
+                        "stats-md": ["28px", { lineHeight: "32px", letterSpacing: "0.05em", fontWeight: "400" }],
+                        "label-sm": ["12px", { lineHeight: "16px", letterSpacing: "0.05em", fontWeight: "600" }],
+                        "headline-lg": ["32px", { lineHeight: "40px", letterSpacing: "0.04em", fontWeight: "400" }],
+                        "display-xl": ["72px", { lineHeight: "80px", letterSpacing: "0.02em", fontWeight: "400" }],
+                        "body-md": ["16px", { lineHeight: "24px", letterSpacing: "0.03em", fontWeight: "400" }]
+                    },
+                    backgroundImage: {
+                        'grid-pattern': "linear-gradient(to right, rgba(0, 0, 0, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(0, 0, 0, 0.05) 1px, transparent 1px)"
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .glass-panel {
+            background-color: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(25, 28, 30, 0.8);
+            box-shadow: 0 4px 24px -8px rgba(88, 80, 236, 0.05);
+        }
+        .technical-bg {
+            background-image: linear-gradient(to right, rgba(25, 28, 30, 0.05) 1px, transparent 1px), linear-gradient(to bottom, rgba(25, 28, 30, 0.05) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+        .glass-input {
+            background-color: rgba(236, 238, 240, 0.5);
+            border: 1px solid rgba(25, 28, 30, 0.8);
+            backdrop-filter: blur(4px);
+        }
+        .glass-input:focus {
+            outline: none;
+            border-color: #3e32d3;
+            box-shadow: 0 0 0 2px rgba(62, 50, 211, 0.2);
+        }
+    </style>
+</head>
+<body class="bg-surface text-on-surface font-label-sm min-h-screen technical-bg flex overflow-hidden">
+<!-- SideNavBar -->
+<aside class="bg-surface-container-low dark:bg-surface-dim docked full-height left-0 w-64 bg-white/70 backdrop-blur-xl border-r border-white/20 shadow-sm fixed inset-y-0 left-0 flex flex-col z-40">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary text-3xl">bolt</span>
+<div>
+<h1 class="font-headline-lg text-headline-lg text-on-surface dark:text-on-surface-variant">Synalytix</h1>
+<p class="text-[10px] text-on-surface-variant uppercase tracking-wider">AI Command Center</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="/dashboard">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">dashboard</span>
+<span>Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="/apps">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">apps</span>
+<span>Apps</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="/studio">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">auto_awesome</span>
+<span>Studio</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="/analytics">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">bar_chart</span>
+<span>Analytics</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="/insights">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">psychology</span>
+<span>Insights</span>
+</a>
+<a class="bg-primary text-on-primary rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 scale-95 transition-transform" href="/settings">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span>Settings</span>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 flex flex-col gap-4">
+<button class="bg-primary text-on-primary w-full py-3 rounded-lg font-headline-lg-mobile text-headline-lg-mobile hover:bg-primary-container transition-colors">Upgrade to Pro</button>
+<nav class="flex flex-col gap-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">help</span>
+<span>Help</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="#">
+<span class="material-symbols-outlined">logout</span>
+<span>Logout</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main id="swup" class="flex-1 ml-64 flex flex-col h-screen overflow-y-auto transition-fade">
+<!-- TopNavBar -->
+<header class="bg-transparent docked full-width top-0 h-16 bg-surface/50 backdrop-blur-md flat no shadows flex items-center justify-between px-gutter w-full max-w-full sticky z-30">
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Settings</h2>
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-opacity p-2 rounded-full hover:bg-surface-variant/50">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<img alt="Alex Chen CTO Profile" class="w-8 h-8 rounded-full border-2 border-primary object-cover" data-alt="Professional headshot of a young male tech executive, bright modern lighting, confident expression, isolated against a subtle tech background. High-key light-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-DDkRHvDqfcvS-eXT80bkv8fdDdbkY9VK46GArWdFNQ8Z9V3x0rs-d_C039UzlJldi4kcH2OMMxLwfSbR1XYQEMEXhm6MhvWo-iQcqKIfSEBPOM5lPKWur5w1d1ZCPryvLwZ9g4I9DmqBAx-Xrr6mGhNJ1R8X5GNrm0mw9bciJ2C4YI3VmF1CeQSaF39gipAQEzFtBMNKVTfKeWJ2yYUQSJYj0frpsSOEjRlWoyxkxAkIpB3IH0M9S786AYQYTmpvIScALGuwL6Y"/>
+</div>
+</header>
+<!-- Page Content -->
+<div class="p-container-padding max-w-7xl mx-auto w-full flex flex-col md:flex-row gap-8 mt-4">
+<!-- Settings Sub-nav -->
+<nav class="w-full md:w-64 flex-shrink-0">
+<ul class="flex flex-col space-y-1">
+<li>
+<a class="flex items-center justify-between px-4 py-3 bg-surface-variant/80 border-l-4 border-primary text-primary font-bold rounded-r-lg" href="/settings/account">
+<span>Account</span>
+<span class="material-symbols-outlined text-sm">person</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-colors border-l-4 border-transparent" href="/settings/preferences">
+<span>Preferences</span>
+<span class="material-symbols-outlined text-sm">tune</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-colors border-l-4 border-transparent" href="/settings/billing">
+<span>Billing</span>
+<span class="material-symbols-outlined text-sm">credit_card</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-colors border-l-4 border-transparent" href="/settings/team">
+<span>Team</span>
+<span class="material-symbols-outlined text-sm">group</span>
+</a>
+</li>
+<li>
+<a class="flex items-center justify-between px-4 py-3 text-on-surface-variant hover:bg-surface-variant/50 rounded-lg transition-colors border-l-4 border-transparent" href="/settings/api-keys">
+<span>API Keys</span>
+<span class="material-symbols-outlined text-sm">key</span>
+</a>
+</li>
+<li class="mt-4 border-t border-outline-variant/30 pt-4">
+<a class="flex items-center justify-between px-4 py-3 text-error hover:bg-error-container/50 rounded-lg transition-colors border-l-4 border-transparent" href="/settings/danger">
+<span>Danger Zone</span>
+<span class="material-symbols-outlined text-sm">warning</span>
+</a>
+</li>
+</ul>
+</nav>
+<!-- Settings Content -->
+<div class="flex-1 max-w-3xl space-y-8">
+
+    <div>
+        <h3 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2">Team Settings</h3>
+        <p class="text-on-surface-variant">This section is currently under construction.</p>
+    </div>
+    
+</div>
+</div>
+<!-- Footer spacing -->
+<div class="h-12 w-full flex-shrink-0"></div>
+</main>
+<!-- Swup SPA Integration -->
+<script src="https://unpkg.com/swup@4"></script>
+<script src="https://unpkg.com/@swup/scripts-plugin@2"></script>
+<script src="/router.js"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.swup) return; // prevent double init
+    window.swup = new Swup({
+      plugins: [new SwupScriptsPlugin()]
+    });
+  });
+</script>
+</body></html>

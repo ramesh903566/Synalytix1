@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html class="light" lang="en">
+<head>
+    <meta charset="utf-8"/>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+    <title>Authenticating... - Synalytix</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <script src="/router.js"></script>
+</head>
+<body class="bg-[#f7f9fb] min-h-screen flex items-center justify-center flex-col gap-4 text-[#191c1e]">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-[#3e32d3]"></div>
+    <p class="font-bold tracking-wide">Authenticating with provider...</p>
+    <script>
+        // Simulate OAuth callback processing
+        setTimeout(() => {
+            window.mockLogin();
+        }, 1500);
+    </script>
+</body>
+</html>

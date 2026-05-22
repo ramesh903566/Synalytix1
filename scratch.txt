@@ -1,0 +1,91 @@
+<USER_REQUEST>
+i ahve copied the code from the pae creadted by stitch create the pages using the code <!-- GitHub Detail - Light Visibility -->
+<!DOCTYPE html><html lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>GitHub App Detail Deep-Dive - Synalytix</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        "colors": {
+                "accent-purple": "#8b5cf6",
+                "on-surface": "#0f172a",
+                "surface-container-highest": "#f1f5f9",
+                "tertiary-fixed-dim": "#10b981",
+                "outline-variant": "#cbd5e1",
+                "secondary": "#475569",
+                "surface-tint": "#8b5cf6",
+                "on-secondary": "#ffffff",
+                "warning-amber": "#f59e0b",
+                "on-surface-variant": "#334155",
+                "background": "#f8fafc",
+                "tertiary-fixed": "#059669",
+                "error": "#ef4444",
+                "surface-container-lowest": "#ffffff",
+                "surface-container": "#f8fafc",
+                "on-secondary-container": "#0f172a",
+                "surface-variant": "#e2e8f0",
+                "on-secondary-fixed-variant": "#334155",
+                "surface": "#ffffff",
+                "on-background": "#0f172a",
+                "surface-dim": "#f1f5f9",
+                "on-primary": "#ffffff",
+                "outline": "#94a3b8",
+                "inverse-on-surface": "#f8fafc",
+                "surface-container-high": "#f1f5f9",
+                "danger-red": "#ef4444",
+                "on-secondary-fixed": "#0f172a",
+                "se
+<truncated 45216 bytes>
+>
+<span class="font-label-sm text-label-sm text-on-surface-variant uppercase">Engagement</span>
+</div>
+</div>
+<div>
+<div class="font-stats-md text-stats-md text-on-surface">2,847</div>
+<div class="flex items-center gap-1 mt-1 text-error">
+<span class="material-symbols-outlined text-[12px]">trending_down</span>
+<span class="font-label-sm text-label-sm">-12</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Content Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-grid-unit">
+<!-- Left Column (Span 2) -->
+<div class="md:col-span-2 flex flex-col gap-grid-unit">
+<!-- Chart Card -->
+<div class="glass-panel rounded-xl p-6 flex flex-col">
+<div class="flex justify-between items-start mb-6">
+<div>
+<h3 class="font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface m-0">Network Growth</h3>
+<p class="font-label-sm text-label-sm text-on-surface-variant">Followers vs Connections over time</p>
+</div>
+<div class="flex gap-2">
+<span class="flex items-center gap-1 font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-primary"></span> Followers</span>
+<span class="flex items-center gap-1 font-label-sm text-label-sm"><span class="w-2 h-2 rounded-full bg-[#0a66c2]"></span> Connections</span>
+</div>
+</div>
+<!-- Pseudo Chart Area -->
+<div class="flex-1 min-h-[250px] relative border-b border-l border-outline-variant/30 flex items-end pt-4 pr-2">
+<!-- Y Axis Labels -->
+<div class="absolute left-[-24px] top-0 bottom-0 flex flex-col justify-between text-[10px] text-on-surface-variant font-label-sm py-2">
+<span class="">2k</span>
+<span class="">1.5k</span>
+<span class="">1k</span>
+<span class="">500</span>
+<span class="">0</span>
+</div>
+<!-- X Axis Labels -->
+<div class="absolute bottom-[-24px] left-0 right-0 flex justify-between text-[10px] text-on-surface-variant font-label-sm px-4">
+<span class="">Mon</span>
+<span class="">Tue</span>
+<span c
+<truncated 225727 bytes>
+
+NOTE: The output was truncated because it was too long. Use a more targeted query or a smaller range to get the information you need.

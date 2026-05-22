@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Synalytix - Composer Studio</title>
+<!-- Google Fonts & Icons -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Anton&amp;family=Arimo:ital,wght@0,400..700;1,400..700&amp;family=Bebas+Neue&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Tailwind Config -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-variant": "#e0e3e5",
+                    "on-secondary-fixed-variant": "#03513d",
+                    "on-primary-container": "#e9e5ff",
+                    "secondary-fixed-dim": "#92d4ba",
+                    "primary-fixed": "#e2dfff",
+                    "on-primary-fixed": "#0f0069",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-fixed": "#151546",
+                    "tertiary-container": "#636398",
+                    "surface-container": "#eceef0",
+                    "on-error-container": "#93000a",
+                    "surface-container-highest": "#e0e3e5",
+                    "surface-dim": "#d8dadc",
+                    "primary-fixed-dim": "#c3c0ff",
+                    "on-primary-fixed-variant": "#3424ca",
+                    "on-tertiary-fixed-variant": "#414174",
+                    "secondary-fixed": "#adf0d5",
+                    "tertiary-fixed-dim": "#c2c1fd",
+                    "primary": "#3e32d3",
+                    "on-tertiary-container": "#e8e5ff",
+                    "on-secondary": "#ffffff",
+                    "on-background": "#191c1e",
+                    "tertiary-fixed": "#e2dfff",
+                    "outline": "#777587",
+                    "on-error": "#ffffff",
+                    "inverse-on-surface": "#eff1f3",
+                    "background": "#f7f9fb",
+                    "secondary": "#276954",
+                    "primary-container": "#5850ec",
+                    "on-secondary-fixed": "#002117",
+                    "inverse-primary": "#c3c0ff",
+                    "surface-bright": "#f7f9fb",
+                    "on-primary": "#ffffff",
+                    "outline-variant": "#c7c4d8",
+                    "on-surface": "#191c1e",
+                    "surface-container-high": "#e6e8ea",
+                    "on-tertiary": "#ffffff",
+                    "inverse-surface": "#2d3133",
+                    "error-container": "#ffdad6",
+                    "surface": "#f7f9fb",
+                    "secondary-container": "#abeed2",
+                    "surface-tint": "#4e44e2",
+                    "on-secondary-container": "#2c6e58",
+                    "on-surface-variant": "#464555",
+                    "error": "#ba1a1a",
+                    "tertiary": "#4b4b7e",
+                    "surface-container-low": "#f2f4f6"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-safe": "32px",
+                    "gutter": "16px",
+                    "container-padding": "24px",
+                    "grid-unit": "24px"
+            },
+            "fontFamily": {
+                    "headline-lg-mobile": [
+                            "Anton"
+                    ],
+                    "stats-md": [
+                            "Bebas Neue"
+                    ],
+                    "label-sm": [
+                            "Arimo"
+                    ],
+                    "headline-lg": [
+                            "Anton"
+                    ],
+                    "display-xl": [
+                            "Anton"
+                    ],
+                    "body-md": [
+                            "Bebas Neue"
+                    ]
+            },
+            "fontSize": {
+                    "headline-lg-mobile": [
+                            "24px",
+                            {
+                                    "lineHeight": "32px",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "stats-md": [
+                            "28px",
+                            {
+                                    "lineHeight": "32px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-sm": [
+                            "12px",
+                            {
+                                    "lineHeight": "16px",
+                                    "letterSpacing": "0.05em",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "headline-lg": [
+                            "32px",
+                            {
+                                    "lineHeight": "40px",
+                                    "letterSpacing": "0.04em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "display-xl": [
+                            "72px",
+                            {
+                                    "lineHeight": "80px",
+                                    "letterSpacing": "0.02em",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "24px",
+                                    "letterSpacing": "0.03em",
+                                    "fontWeight": "400"
+                            }
+                    ]
+            }
+        },
+        },
+      }
+    </script>
+<style>
+        /* Technical Grid Background */
+        body {
+            background-color: theme('colors.surface');
+            background-image: 
+                linear-gradient(to right, rgba(200, 200, 200, 0.2) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(200, 200, 200, 0.2) 1px, transparent 1px);
+            background-size: 24px 24px;
+            background-position: center top;
+        }
+
+        /* Glassmorphism Utilities */
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .glass-dark {
+            background: rgba(25, 28, 30, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: theme('colors.outline-variant');
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: theme('colors.outline');
+        }
+        
+        [data-icon] {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        [data-weight="fill"] {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+    <script src="/router.js"></script>
+</head>
+<body class="text-on-surface font-body-md h-screen flex overflow-hidden">
+<!-- Shared Component: SideNavBar -->
+<aside class="fixed inset-y-0 left-0 flex flex-col z-40 bg-surface-container-low dark:bg-surface-dim docked full-height left-0 w-64 bg-white/70 backdrop-blur-xl border-r border-white/20 shadow-sm transition-all duration-300 md:translate-x-0 -translate-x-full" id="sidenav">
+<!-- Header -->
+<div class="p-gutter flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+</div>
+<div>
+<h1 class="text-headline-lg font-headline-lg text-on-surface dark:text-on-surface-variant leading-none">Synalytix</h1>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-70">AI Command Center</p>
+</div>
+</div>
+<!-- Main Nav Tabs -->
+<nav class="flex-1 overflow-y-auto py-4 px-2 space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="main_dashboard.html">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="font-label-sm text-label-sm">Dashboard</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="apps_management.html">
+<span class="material-symbols-outlined" data-icon="apps">apps</span>
+<span class="font-label-sm text-label-sm">Apps</span>
+</a>
+<a class="bg-primary text-on-primary rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200 Active: scale-95 transition-transform" href="studio_composer.html">
+<span class="material-symbols-outlined" data-icon="auto_awesome" data-weight="fill">auto_awesome</span>
+<span class="font-label-sm text-label-sm">Studio</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="analytics_deep_dive.html">
+<span class="material-symbols-outlined" data-icon="bar_chart">bar_chart</span>
+<span class="font-label-sm text-label-sm">Analytics</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="placement_readiness.html">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+<span class="font-label-sm text-label-sm">Insights</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="settings">settings</span>
+<span class="font-label-sm text-label-sm">Settings</span>
+</a>
+</nav>
+<!-- Footer Actions -->
+<div class="p-4 border-t border-outline-variant/30 space-y-4">
+<button class="w-full bg-primary text-on-primary font-headline-lg text-body-md py-2 px-4 rounded-lg hover:opacity-90 transition-opacity flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-[20px]" data-icon="rocket_launch">rocket_launch</span>
+                Upgrade to Pro
+            </button>
+<div class="space-y-1">
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="help">help</span>
+<span class="font-label-sm text-label-sm">Help</span>
+</a>
+<a class="text-on-surface-variant hover:bg-surface-variant/50 rounded-lg mx-2 my-1 flex items-center gap-3 px-4 py-2 hover:bg-surface-container-highest transition-colors duration-200" href="#">
+<span class="material-symbols-outlined" data-icon="logout">logout</span>
+<span class="font-label-sm text-label-sm">Logout</span>
+</a>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 flex flex-col ml-0 md:ml-64 relative h-full" id=\"swup\" class=\"transition-fade\">
+<!-- Header Section -->
+<header class="h-20 px-8 flex items-center justify-between border-b border-outline-variant/20 bg-surface/80 backdrop-blur-sm z-10 sticky top-0">
+<div>
+<h2 class="font-headline-lg text-headline-lg text-on-surface">Composer</h2>
+<p class="font-label-sm text-label-sm text-on-surface-variant opacity-80">Draft, preview, and publish across networks.</p>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label-sm text-label-sm text-on-surface-variant bg-surface-container-high px-3 py-1 rounded-full">Draft Saved: 2m ago</span>
+</div>
+</header>
+<!-- Two Column Studio Layout -->
+<div class="flex-1 overflow-hidden flex flex-col lg:flex-row">
+<!-- Left Column: Editor Zone -->
+<section class="flex-1 overflow-y-auto p-8 relative">
+<div class="max-w-3xl mx-auto space-y-6">
+<!-- Platform Selector Component -->
+<div class="glass-panel rounded-xl p-6 shadow-sm">
+<h3 class="font-label-sm text-label-sm text-on-surface-variant mb-4 uppercase tracking-wider">Publish To</h3>
+<div class="flex flex-wrap gap-3">
+<button class="flex items-center gap-2 bg-primary-container text-on-primary-container px-4 py-2 rounded-full font-label-sm text-label-sm shadow-[0_4px_12px_rgba(88,80,236,0.2)] transition-transform hover:-translate-y-0.5">
+<div class="w-2 h-2 rounded-full bg-secondary"></div>
+                                LinkedIn
+                                <span class="material-symbols-outlined text-[16px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+</button>
+<button class="flex items-center gap-2 bg-transparent border border-outline text-on-surface px-4 py-2 rounded-full font-label-sm text-label-sm hover:bg-surface-variant/50 transition-colors">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+                                Twitter / X
+                            </button>
+<button class="flex items-center gap-2 bg-primary text-on-primary px-4 py-2 rounded-full font-label-sm text-label-sm shadow-[0_4px_12px_rgba(62,50,211,0.3)] transition-transform hover:-translate-y-0.5">
+<div class="w-2 h-2 rounded-full bg-error"></div>
+                                Instagram
+                                <span class="material-symbols-outlined text-[16px]" data-icon="check_circle" data-weight="fill">check_circle</span>
+</button>
+</div>
+</div>
+<!-- Main Text Editor Component -->
+<div class="glass-panel rounded-xl shadow-sm flex flex-col overflow-hidden border border-outline-variant/40">
+<!-- Toolbar -->
+<div class="flex items-center justify-between p-3 border-b border-outline-variant/30 bg-surface-container-lowest/50">
+<div class="flex items-center gap-2 text-on-surface-variant">
+<button class="p-1.5 hover:bg-surface-variant rounded text-[14px] font-bold w-8 h-8 flex items-center justify-center">B</button>
+<button class="p-1.5 hover:bg-surface-variant rounded text-[14px] italic font-serif w-8 h-8 flex items-center justify-center">I</button>
+<button class="p-1.5 hover:bg-surface-variant rounded flex items-center justify-center w-8 h-8">
+<span class="material-symbols-outlined text-[18px]" data-icon="format_list_bulleted">format_list_bulleted</span>
+</button>
+<div class="w-px h-5 bg-outline-variant/50 mx-1"></div>
+<button class="p-1.5 hover:bg-surface-variant rounded flex items-center justify-center w-8 h-8 text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="link">link</span>
+</button>
+<button class="p-1.5 hover:bg-surface-variant rounded flex items-center justify-center w-8 h-8 text-primary">
+<span class="material-symbols-outlined text-[18px]" data-icon="alternate_email">alternate_email</span>
+</button>
+<button class="p-1.5 hover:bg-surface-variant rounded flex items-center justify-center w-8 h-8 text-primary font-bold">#</button>
+</div>
+<button class="flex items-center gap-1.5 text-primary border border-primary/30 bg-primary/5 px-3 py-1.5 rounded-lg font-label-sm text-label-sm hover:bg-primary/10 transition-colors">
+<span class="material-symbols-outlined text-[16px]" data-icon="magic_button">magic_button</span>
+                                Enhance
+                            </button>
+</div>
+<!-- Text Area -->
+<textarea class="w-full bg-transparent border-none focus:ring-0 resize-none p-6 text-on-surface font-label-sm text-[16px] leading-relaxed placeholder:text-on-surface-variant/50 min-h-[240px]" placeholder="What's unfolding in the cosmos today...">What's happening in the tech world today?</textarea>
+<!-- Character Count -->
+<div class="bg-surface-container-high/50 p-2 text-right font-label-sm text-label-sm text-on-surface-variant/70 border-t border-outline-variant/20">
+                            245 / 3000 (LI)
+                        </div>
+</div>
+<!-- Media Dropzone Component -->
+<div class="border-2 border-dashed border-outline-variant/60 rounded-xl p-8 bg-surface-container-lowest/40 hover:bg-surface-container-lowest/80 transition-colors flex flex-col items-center justify-center text-center cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-variant flex items-center justify-center text-on-surface-variant mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined" data-icon="cloud_upload">cloud_upload</span>
+</div>
+<h4 class="font-headline-lg text-[20px] text-on-surface mb-1">Upload Media</h4>
+<p class="font-label-sm text-label-sm text-primary">Drag &amp; drop images or video here, or click to browse</p>
+</div>
+<!-- AI Suggestions Bento Box -->
+<div class="glass-panel rounded-xl p-6 shadow-sm border-l-4 border-l-primary flex gap-4">
+<div class="mt-1 text-primary">
+<span class="material-symbols-outlined" data-icon="psychology">psychology</span>
+</div>
+<div>
+<h4 class="font-headline-lg text-[18px] text-on-surface mb-3">AI Suggestions</h4>
+<div class="flex flex-wrap gap-2">
+<button class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90 transition-opacity">Generate Thread</button>
+<button class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90 transition-opacity">Extract Key Insights</button>
+<button class="bg-primary-container text-on-primary-container px-3 py-1.5 rounded-lg font-label-sm text-[11px] hover:opacity-90 transition-opacity">Suggest Hashtags</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Action Bar (Sticky relative to content column) -->
+<div class="sticky bottom-0 mt-12 bg-surface/90 backdrop-blur-md border-t border-outline-variant/30 py-4 px-8 -mx-8 flex justify-between items-center z-20">
+<button class="border border-outline text-on-surface px-6 py-2 rounded-lg font-label-sm text-label-sm hover:bg-surface-variant transition-colors">Discard</button>
+<div class="flex gap-3">
+<button class="border border-primary text-primary px-6 py-2 rounded-lg font-label-sm text-label-sm hover:bg-primary/5 transition-colors">Save Draft</button>
+<div class="flex rounded-lg overflow-hidden shadow-[0_4px_16px_rgba(62,50,211,0.4)]">
+<button class="bg-primary text-on-primary px-8 py-2 font-label-sm text-label-sm hover:opacity-95 transition-opacity">Post Now</button>
+<button class="bg-primary text-on-primary px-3 py-2 border-l border-on-primary/20 hover:opacity-90 transition-opacity flex items-center justify-center">
+<span class="material-symbols-outlined text-[18px]" data-icon="schedule">schedule</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Right Column: Live Preview Panel -->
+<aside class="w-full lg:w-[450px] bg-inverse-surface border-l border-outline-variant/20 flex flex-col z-20 shadow-2xl">
+<!-- Preview Header -->
+<div class="h-16 px-6 flex items-center justify-between border-b border-outline-variant/10">
+<h3 class="font-headline-lg text-[20px] text-on-primary">Live Preview</h3>
+<div class="flex bg-surface/10 rounded-lg p-1">
+<button class="px-4 py-1 rounded text-[12px] font-label-sm text-on-surface-variant hover:text-on-primary transition-colors">Mobile</button>
+<button class="px-4 py-1 rounded bg-surface/20 text-[12px] font-label-sm text-on-primary shadow-sm">Desktop</button>
+</div>
+</div>
+<!-- Preview Canvas Container -->
+<div class="flex-1 overflow-y-auto p-6 bg-[#1e2329] space-y-6">
+<!-- LinkedIn Mock Card -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-lg border border-outline-variant/10">
+<!-- Platform Header Indicator -->
+<div class="bg-surface-container-low px-4 py-2 border-b border-outline-variant/20 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#0a66c2]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">LinkedIn Preview</span>
+</div>
+<div class="p-4">
+<!-- Author Block -->
+<div class="flex items-center gap-3 mb-4">
+<div class="w-12 h-12 rounded-full bg-surface-variant"></div>
+<div>
+<p class="font-label-sm text-[14px] text-on-surface font-bold leading-tight">Your Company</p>
+<p class="font-label-sm text-[12px] text-on-surface-variant">10,432 followers • 1h</p>
+</div>
+</div>
+<!-- Post Content Mock -->
+<div class="font-label-sm text-[14px] text-on-surface mb-3 leading-relaxed">
+<p>Just starting to type here... the preview will update in real-time as you compose your message on the left.</p>
+<p class="text-primary mt-2">#tech #innovation #future</p>
+</div>
+<!-- Media Placeholder Mock -->
+<div class="w-full h-48 bg-surface-container rounded-lg border border-outline-variant/30 flex items-center justify-center text-on-surface-variant/50">
+<span class="material-symbols-outlined text-[32px]" data-icon="image">image</span>
+</div>
+</div>
+</div>
+<!-- Instagram Mock Card -->
+<div class="bg-surface-container-lowest rounded-xl overflow-hidden shadow-lg border border-outline-variant/10">
+<!-- Platform Header Indicator -->
+<div class="bg-surface-container-low px-4 py-2 border-b border-outline-variant/20 flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-[#e1306c]"></div>
+<span class="font-label-sm text-[10px] text-on-surface-variant uppercase tracking-wider font-bold">Instagram Preview</span>
+</div>
+<div class="p-4 border-b border-outline-variant/10 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full border-2 border-[#e1306c] p-[2px]">
+<div class="w-full h-full rounded-full bg-surface-variant"></div>
+</div>
+<p class="font-label-sm text-[13px] text-on-surface font-bold">your_handle</p>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant" data-icon="more_horiz">more_horiz</span>
+</div>
+<!-- Media Placeholder Square -->
+<div class="w-full aspect-square bg-surface-container flex items-center justify-center text-on-surface-variant/50">
+<span class="material-symbols-outlined text-[48px]" data-icon="image">image</span>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</main>
+
+<!-- Swup SPA Integration -->
+<script src="https://unpkg.com/swup@4"></script>
+<script src="https://unpkg.com/@swup/scripts-plugin@2"></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    if (window.swup) return; // prevent double init
+    window.swup = new Swup({
+      plugins: [new SwupScriptsPlugin()]
+    });
+  });
+</script>
+</body>
+</html>
+
+<!-- Apps Management - Technical Glassmorphism -->
