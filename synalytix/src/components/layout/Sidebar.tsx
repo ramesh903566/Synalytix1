@@ -1,118 +1,155 @@
-'use client'
+"use client"
 
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { useUIStore } from '@/stores/uiStore'
-import { useAuthStore } from '@/stores/authStore'
-import { cn } from '@/lib/utils'
+import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { 
+  Home, Database, LayoutDashboard, FileText, Lightbulb, 
+  Workflow, BellRing, Settings, Key, ChevronsLeft, ChevronsRight,
+  User, LifeBuoy
+} from "lucide-react"
 
-const NAV_ITEMS = [
-  { href: '/dashboard', icon: 'dashboard',     label: 'Dashboard' },
-  { href: '/apps',      icon: 'apps',           label: 'Apps'      },
-  { href: '/studio',    icon: 'auto_awesome',   label: 'Studio'    },
-  { href: '/analytics', icon: 'bar_chart',      label: 'Analytics' },
-  { href: '/insights',  icon: 'psychology',     label: 'Insights'  },
-  { href: '/settings',  icon: 'settings',       label: 'Settings'  },
-] as const
+import { cn } from "@/lib/utils"
+import { useSidebar } from "@/hooks/use-sidebar"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "../ui/tooltip"
+import { Avatar, AvatarFallback } from "../ui/avatar"
+
+export interface SidebarItem {
+  label: string
+  href: string
+  icon: React.ElementType
+  badge?: number
+}
+
+const MAIN_NAV: SidebarItem[] = [
+  { label: "Home", href: "/dashboard", icon: Home },
+  { label: "Datasets", href: "/datasets", icon: Database },
+  { label: "Dashboards", href: "/dashboards", icon: LayoutDashboard },
+  { label: "Reports", href: "/reports", icon: FileText },
+  { label: "Insights", href: "/insights", icon: Lightbulb },
+]
+
+const AUTOMATE_NAV: SidebarItem[] = [
+  { label: "Workflows", href: "/workflows", icon: Workflow },
+  { label: "Alerts", href: "/alerts", icon: BellRing },
+]
+
+const CONFIG_NAV: SidebarItem[] = [
+  { label: "Settings", href: "/settings/account", icon: Settings },
+  { label: "API Keys", href: "/settings/api-keys", icon: Key },
+]
 
 export function Sidebar() {
+  const { collapsed, toggle } = useSidebar()
   const pathname = usePathname()
-  const { sidebarCollapsed, toggleSidebar } = useUIStore()
-  const { logout } = useAuthStore()
+
+  const NavItem = ({ item }: { item: SidebarItem }) => {
+    const isActive = pathname.startsWith(item.href)
+    const Icon = item.icon
+
+    const linkContent = (
+      <Link
+        href={item.href}
+        className={cn(
+          "flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          isActive 
+            ? "bg-secondary text-primary" 
+            : "text-muted-foreground hover:bg-muted/50 hover:text-foreground",
+          collapsed && "justify-center px-0"
+        )}
+      >
+        <Icon className={cn("h-5 w-5 shrink-0", isActive ? "text-primary" : "text-muted-foreground")} />
+        {!collapsed && (
+          <span className="flex-1 truncate">{item.label}</span>
+        )}
+        {!collapsed && item.badge !== undefined && item.badge > 0 && (
+          <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+            {item.badge}
+          </span>
+        )}
+      </Link>
+    )
+
+    if (collapsed) {
+      return (
+        <TooltipProvider delayDuration={0}>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              {linkContent}
+            </TooltipTrigger>
+            <TooltipContent side="right" className="flex items-center gap-2">
+              {item.label}
+              {item.badge !== undefined && item.badge > 0 && (
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                  {item.badge}
+                </span>
+              )}
+            </TooltipContent>
+          </Tooltip>
+        </TooltipProvider>
+      )
+    }
+
+    return linkContent
+  }
+
+  const NavGroup = ({ title, items }: { title: string, items: SidebarItem[] }) => (
+    <div className="flex flex-col gap-1 px-2">
+      {!collapsed && (
+        <h4 className="px-3 pb-1 pt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+          {title}
+        </h4>
+      )}
+      {collapsed && <div className="mt-4 border-t border-border/50 mx-4" />}
+      {items.map((item) => (
+        <NavItem key={item.href} item={item} />
+      ))}
+    </div>
+  )
 
   return (
     <aside
       className={cn(
-        'fixed inset-y-0 left-0 z-40 flex flex-col',
-        'bg-white/70 backdrop-blur-xl border-r border-white/20 shadow-sm',
-        'transition-all duration-300',
-        sidebarCollapsed ? 'w-16' : 'w-64'
+        "flex h-screen flex-col border-r bg-card transition-[width] duration-300 ease-in-out will-change-transform z-20",
+        collapsed ? "w-[56px]" : "w-[240px]"
       )}
     >
-      {/* Logo */}
-      <div className="p-6">
-        <div className="flex items-center gap-3 mb-8">
-          <button
-            onClick={toggleSidebar}
-            className="text-primary"
-            aria-label={sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-          >
-            <span className="material-symbols-outlined text-3xl select-none">bolt</span>
-          </button>
-          {!sidebarCollapsed && (
-            <div>
-              <h1 className="font-headline-lg text-[20px] leading-none text-on-surface tracking-widest">
-                Synalytix
-              </h1>
-              <p className="text-[10px] text-on-surface-variant uppercase tracking-wider mt-0.5">
-                AI Command Center
-              </p>
+      {/* Header */}
+      <div className={cn("flex h-14 shrink-0 items-center border-b px-4", collapsed ? "justify-center px-0" : "justify-between")}>
+        {!collapsed && (
+          <Link href="/dashboard" className="flex items-center gap-2 font-bold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm">
+            <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
+              <span className="text-primary-foreground text-xs font-bold leading-none">S</span>
             </div>
-          )}
-        </div>
-
-        {/* Navigation */}
-        <nav className="flex flex-col gap-1">
-          {NAV_ITEMS.map(({ href, icon, label }) => {
-            const isActive = pathname === href || pathname.startsWith(href + '/')
-            return (
-              <Link
-                key={href}
-                href={href}
-                className={cn(
-                  'rounded-lg mx-2 my-0.5 flex items-center gap-3 px-3 py-2',
-                  'transition-all duration-150',
-                  isActive
-                    ? 'bg-primary text-on-primary scale-95'
-                    : 'text-on-surface-variant hover:bg-surface-container-highest'
-                )}
-                title={sidebarCollapsed ? label : undefined}
-              >
-                <span
-                  className="material-symbols-outlined text-[20px] flex-shrink-0 select-none"
-                  style={{ fontVariationSettings: isActive ? "'FILL' 1" : "'FILL' 0" }}
-                >
-                  {icon}
-                </span>
-                {!sidebarCollapsed && (
-                  <span className="text-sm font-medium truncate">{label}</span>
-                )}
-              </Link>
-            )
-          })}
-        </nav>
+            <span>Synalytix</span>
+          </Link>
+        )}
+        {collapsed && (
+          <div className="h-6 w-6 rounded bg-primary flex items-center justify-center">
+            <span className="text-primary-foreground text-xs font-bold leading-none">S</span>
+          </div>
+        )}
       </div>
 
-      {/* Bottom: Upgrade + Help + Logout */}
-      <div className="mt-auto p-6 flex flex-col gap-4">
-        {!sidebarCollapsed && (
-          <button className="bg-primary text-on-primary w-full py-3 rounded-lg font-headline-lg-mobile text-headline-lg-mobile hover:bg-primary-container transition-colors text-sm">
-            Upgrade to Pro
-          </button>
-        )}
-        <nav className="flex flex-col gap-1">
-          {[
-            { href: '/help',   icon: 'help',   label: 'Help'   },
-          ].map(({ href, icon, label }) => (
-            <Link
-              key={href}
-              href={href}
-              className="text-on-surface-variant hover:bg-surface-container-highest rounded-lg mx-2 my-0.5 flex items-center gap-3 px-3 py-2 transition-colors"
-              title={sidebarCollapsed ? label : undefined}
-            >
-              <span className="material-symbols-outlined text-[20px] select-none">{icon}</span>
-              {!sidebarCollapsed && <span className="text-sm">{label}</span>}
-            </Link>
-          ))}
-          <button
-            onClick={logout}
-            className="text-on-surface-variant hover:bg-surface-container-highest rounded-lg mx-2 my-0.5 flex items-center gap-3 px-3 py-2 transition-colors w-full text-left"
-            title={sidebarCollapsed ? 'Logout' : undefined}
-          >
-            <span className="material-symbols-outlined text-[20px] select-none">logout</span>
-            {!sidebarCollapsed && <span className="text-sm">Logout</span>}
-          </button>
-        </nav>
+      {/* Nav Content */}
+      <div className="flex-1 overflow-y-auto py-2 scrollbar-none hover:scrollbar-thin">
+        <NavGroup title="Main" items={MAIN_NAV} />
+        <NavGroup title="Automate" items={AUTOMATE_NAV} />
+        <NavGroup title="Config" items={CONFIG_NAV} />
+      </div>
+
+      {/* Footer */}
+      <div className="shrink-0 border-t p-2">
+        <button
+          onClick={toggle}
+          className={cn(
+            "flex w-full items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted/50 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            collapsed && "justify-center px-0"
+          )}
+        >
+          {collapsed ? <ChevronsRight className="h-5 w-5 shrink-0" /> : <ChevronsLeft className="h-5 w-5 shrink-0" />}
+          {!collapsed && <span>Collapse</span>}
+        </button>
       </div>
     </aside>
   )

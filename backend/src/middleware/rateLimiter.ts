@@ -25,7 +25,11 @@ export const authLimiter = rateLimit({
 export const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30, // 30 requests per minute per user for AI routes
-  keyGenerator: (req) => req.user?.id || req.ip || 'unknown',
+  keyGenerator: (req) => {
+    if (req.user?.id) return req.user.id;
+    const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress || 'unknown';
+    return Array.isArray(ip) ? ip[0] : ip;
+  },
   standardHeaders: true,
   legacyHeaders: false,
   store: new RedisStore({

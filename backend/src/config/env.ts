@@ -12,6 +12,7 @@ const envSchema = z.object({
   SUPABASE_SERVICE_ROLE_KEY: z.string().min(1),
   REDIS_URL: z.string().url(),
   ANTHROPIC_API_KEY: z.string().min(1).optional(),
+  SENTRY_DSN: z.string().url().optional(),
 });
 
 const parsedEnv = envSchema.safeParse(process.env);

@@ -1,58 +1,127 @@
-'use client'
+"use client"
 
-import { useAuthStore } from '@/stores/authStore'
-import { useUIStore } from '@/stores/uiStore'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { CommandPalette } from '@/components/shared/CommandPalette'
+import * as React from "react"
+import Link from "next/link"
+import { usePathname } from "next/navigation"
+import { Search, Bell, User as UserIcon, Monitor, Moon, Sun, Keyboard, LogOut } from "lucide-react"
 
-interface TopNavProps {
-  title: string
-}
+import { Button } from "../ui/button"
+import { Avatar, AvatarFallback } from "../ui/avatar"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "../ui/dropdown-menu"
+import { useTheme } from "@/hooks/use-theme"
 
-export function TopNav({ title }: TopNavProps) {
-  const { user } = useAuthStore()
-  const { openCommandPalette } = useUIStore()
+export function TopNav() {
+  const pathname = usePathname()
+  const { theme, setTheme } = useTheme()
 
-  const initials = user
-    ? `${user.firstName[0]}${user.lastName[0]}`.toUpperCase()
-    : '??'
+  // Derive simple breadcrumbs from pathname for the prototype
+  const paths = pathname.split('/').filter(Boolean)
+  const breadcrumb = paths.length > 0 
+    ? paths[0].charAt(0).toUpperCase() + paths[0].slice(1)
+    : "Dashboard"
 
   return (
-    <header className="sticky top-0 z-30 h-16 bg-surface/50 backdrop-blur-md border-b border-outline-variant/30 flex items-center justify-between px-6 w-full">
-      <h2 className="font-headline-lg text-headline-lg text-on-surface">{title}</h2>
-
-      <div className="flex items-center gap-4">
-        {/* Cmd+K search trigger */}
-        <button
-          onClick={openCommandPalette}
-          className="hidden md:flex items-center gap-2 text-on-surface-variant text-sm px-3 py-1.5 rounded-full border border-outline-variant/50 hover:bg-surface-container transition-colors"
-        >
-          <span className="material-symbols-outlined text-[18px]">search</span>
-          <span>Search</span>
-          <kbd className="text-xs bg-surface-container px-1.5 py-0.5 rounded border border-outline-variant/50 ml-2">
-            ⌘K
-          </kbd>
-        </button>
-
-        {/* Notifications */}
-        <button
-          className="relative text-on-surface-variant hover:text-primary p-2 rounded-full hover:bg-surface-variant/50 transition-colors"
-          aria-label="Notifications"
-        >
-          <span className="material-symbols-outlined">notifications</span>
-          {/* Unread badge */}
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-primary rounded-full" />
-        </button>
-
-        {/* Avatar */}
-        <Avatar className="w-8 h-8 border-2 border-primary cursor-pointer">
-          <AvatarImage src={user?.avatarUrl ?? undefined} alt={`${user?.firstName} ${user?.lastName}`} />
-          <AvatarFallback className="bg-primary text-on-primary text-xs font-bold">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+    <header className="flex h-14 shrink-0 items-center justify-between border-b bg-card px-6 lg:px-8 z-10 w-full">
+      {/* Left: Breadcrumb */}
+      <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+        <span className="text-foreground">{breadcrumb}</span>
+        {paths.length > 1 && (
+          <>
+            <span>/</span>
+            <span>{paths[1]}</span>
+          </>
+        )}
       </div>
-      <CommandPalette />
+
+      {/* Center: Search (Visual Only for Layout) */}
+      <div className="hidden md:flex flex-1 max-w-md mx-8">
+        <Button 
+          variant="outline" 
+          className="w-full justify-start text-muted-foreground bg-muted/30 border-muted-foreground/20 shadow-none hover:bg-muted"
+        >
+          <Search className="mr-2 h-4 w-4 shrink-0 opacity-50" />
+          <span className="text-xs">Search everywhere...</span>
+          <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
+            <span className="text-xs">⌘</span>K
+          </kbd>
+        </Button>
+      </div>
+
+      {/* Right: Actions */}
+      <div className="flex items-center gap-4">
+        <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+          <Bell className="h-5 w-5" />
+          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-error ring-2 ring-background" />
+        </Button>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="ghost" className="relative h-8 w-8 rounded-full">
+              <Avatar size="sm">
+                <AvatarFallback deterministicColorSeed="demo@user.com">DU</AvatarFallback>
+              </Avatar>
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56" align="end" forceMount>
+            <DropdownMenuLabel className="font-normal">
+              <div className="flex flex-col space-y-1">
+                <p className="text-sm font-medium leading-none">Demo User</p>
+                <p className="text-xs leading-none text-muted-foreground">
+                  demo@synalytix.io
+                </p>
+              </div>
+            </DropdownMenuLabel>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem asChild>
+                <Link href="/settings/account" className="cursor-pointer flex items-center w-full">
+                  <UserIcon className="mr-2 h-4 w-4" />
+                  <span>Profile</span>
+                  <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
+                </Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem className="cursor-pointer">
+                <Keyboard className="mr-2 h-4 w-4" />
+                <span>Keyboard shortcuts</span>
+                <DropdownMenuShortcut>⌘K</DropdownMenuShortcut>
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuGroup>
+              <DropdownMenuItem onClick={() => setTheme('light')} className="cursor-pointer">
+                <Sun className="mr-2 h-4 w-4" />
+                <span>Light Theme</span>
+                {theme === 'light' && <DropdownMenuShortcut className="text-primary font-bold">✓</DropdownMenuShortcut>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('dark')} className="cursor-pointer">
+                <Moon className="mr-2 h-4 w-4" />
+                <span>Dark Theme</span>
+                {theme === 'dark' && <DropdownMenuShortcut className="text-primary font-bold">✓</DropdownMenuShortcut>}
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setTheme('system')} className="cursor-pointer">
+                <Monitor className="mr-2 h-4 w-4" />
+                <span>System</span>
+                {theme === 'system' && <DropdownMenuShortcut className="text-primary font-bold">✓</DropdownMenuShortcut>}
+              </DropdownMenuItem>
+            </DropdownMenuGroup>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem className="cursor-pointer text-destructive focus:bg-destructive focus:text-destructive-foreground">
+              <LogOut className="mr-2 h-4 w-4" />
+              <span>Log out</span>
+              <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
+      </div>
     </header>
   )
 }
