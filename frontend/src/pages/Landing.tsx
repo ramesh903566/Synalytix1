@@ -27,71 +27,25 @@ export default function Landing() {
       </nav>
 
       {/* Hero Section */}
-      <main className="pt-32 lg:pt-48 pb-24 px-6 sm:px-12 max-w-[90rem] mx-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
-          {/* Left Column: Text */}
-          <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut" }}
-            className="flex flex-col items-start text-left w-full max-w-2xl mx-auto lg:mx-0"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/60 backdrop-blur-md border border-white/40 text-xs font-bold uppercase tracking-[0.2em] mb-8 text-brand-primary shadow-sm">
-              <span className="w-2 h-2 rounded-full bg-brand-secondary animate-pulse"></span>
-              Intelligent Command Center
-            </div>
-            
-            <h1 className="font-display text-6xl sm:text-7xl lg:text-[5.5rem] tracking-wide text-slate-900 mb-6 leading-[0.95] uppercase">
-              Stop Juggling Tabs. <br />
-              <span className="text-brand-primary">Start Growing.</span>
-            </h1>
-
-            <p className="font-label text-lg sm:text-xl text-slate-600 mb-10 max-w-xl leading-relaxed">
-              Synalytix unifies your productivity, social growth, and coding analytics into one AI-powered command center. Every metric, one dashboard.
-            </p>
-
-            <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto">
-              <button 
-                onClick={() => navigate('/auth')}
-                className="w-full sm:w-auto px-8 py-4 bg-brand-primary text-white font-label font-bold tracking-widest text-sm rounded-xl hover:bg-brand-primary/90 transition-all shadow-xl shadow-brand-primary/30 transform hover:-translate-y-1"
-              >
-                START FREE NOW →
-              </button>
-              <button className="w-full sm:w-auto px-8 py-4 bg-white/60 backdrop-blur-md border border-white/50 text-slate-800 font-label font-bold tracking-widest text-sm rounded-xl hover:bg-white/80 transition-all shadow-sm">
-                SEE DEMO
-              </button>
-            </div>
-          </motion.div>
-
-          {/* Right Column: 3D Hero Placeholder */}
-          <motion.div
-            initial={{ opacity: 0, x: 30 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.8, ease: "easeOut", delay: 0.2 }}
-            className="w-full h-full min-h-[400px] lg:min-h-[600px] relative"
-          >
-            <div 
-              id="spline-hero-container" 
-              className="w-full h-full absolute inset-0 rounded-[2.5rem] border border-white/40 bg-white/40 backdrop-blur-3xl flex flex-col items-center justify-center shadow-2xl shadow-brand-tertiary/20 overflow-hidden"
-            >
-              {/* Symmetrical negative inset to push the watermark out of bounds while keeping the 3D scene centered */}
-              <div className="absolute -inset-24 z-10">
-                <Suspense fallback={
-                  <div className="flex flex-col items-center justify-center h-full w-full">
-                    <div className="w-16 h-16 mb-4 rounded-2xl bg-white/50 flex items-center justify-center border border-white/50 shadow-inner">
-                      <div className="w-8 h-8 rounded-full border-4 border-dashed border-brand-primary/50 animate-[spin_3s_linear_infinite]"></div>
-                    </div>
-                    <span className="font-label text-brand-tertiary font-bold text-sm tracking-[0.2em] uppercase text-center">
-                      Loading 3D Engine...
-                    </span>
-                  </div>
-                }>
-                  <Spline scene="https://prod.spline.design/3w2PKTAbdgbSVwWR/scene.splinecode" className="w-full h-full" />
-                </Suspense>
+      <main className="w-full h-[calc(100vh-2rem)] pt-28 pb-12 px-6 sm:px-12 flex items-center justify-center">
+        <div className="w-full h-full max-w-[100rem] mx-auto relative rounded-[3rem] overflow-hidden shadow-2xl shadow-brand-tertiary/10 border border-white/40 bg-white/20 backdrop-blur-2xl">
+          {/* Symmetrical negative inset to push the watermark out of bounds while keeping the 3D scene centered */}
+          <div className="absolute -inset-24 z-10 pointer-events-auto">
+            <Suspense fallback={
+              <div className="flex flex-col items-center justify-center h-full w-full bg-transparent">
+                <div className="w-16 h-16 mb-4 rounded-2xl bg-white/50 flex items-center justify-center border border-white/50 shadow-inner">
+                  <div className="w-8 h-8 rounded-full border-4 border-dashed border-brand-primary/50 animate-[spin_3s_linear_infinite]"></div>
+                </div>
               </div>
-            </div>
-          </motion.div>
+            }>
+              <Spline scene="https://prod.spline.design/t1kz57-eOEyxt8UN/scene.splinecode" className="w-full h-full" />
+            </Suspense>
+          </div>
         </div>
+      </main>
+
+      {/* Feature Teaser Cards Container */}
+      <div className="relative z-10 w-full max-w-[90rem] mx-auto px-6 sm:px-12 pb-24">
 
         {/* Feature Teaser Cards */}
         <motion.div 
@@ -128,7 +82,7 @@ export default function Landing() {
             <p className="text-slate-600 text-sm leading-relaxed font-label">Get proactive insights on how to grow your engagement and reach more people effectively across all platforms.</p>
           </div>
         </motion.div>
-      </main>
+      </div>
     </div>
   );
 }
