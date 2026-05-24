@@ -1,9 +1,11 @@
 export const MOCK_APPS = [
-  { id: 'instagram', name: 'Instagram', color: 'text-pink-600' },
-  { id: 'x', name: 'X (Twitter)', color: 'text-black' },
-  { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600' },
-  { id: 'github', name: 'GitHub', color: 'text-gray-800' },
-  { id: 'leetcode', name: 'LeetCode', color: 'text-yellow-600' }
+  { id: 'instagram', name: 'Instagram', color: 'text-pink-600', icon: '/icons/insta icon.jpeg' },
+  { id: 'x', name: 'X', color: 'text-black', icon: '/icons/x icon.jpeg' },
+  { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600', icon: '/icons/linked in icon.jpeg' },
+  { id: 'github', name: 'GitHub', color: 'text-gray-800', icon: '/icons/githubicon.png' },
+  { id: 'tiktok', name: 'TikTok', color: 'text-black', icon: '/icons/tiktok icon.jpeg' },
+  { id: 'discord', name: 'Discord', color: 'text-indigo-600', icon: '/icons/discord.jpeg' },
+  { id: 'facebook', name: 'Facebook', color: 'text-blue-600', icon: '/icons/facebook icon.jpeg' }
 ] as const;
 
 export const MOCK_ACCOUNTS: Record<string, any[]> = {
@@ -21,8 +23,14 @@ export const MOCK_ACCOUNTS: Record<string, any[]> = {
     { id: 'gh_1', username: 'alexj-dev', avatarUrl: 'https://i.pravatar.cc/150?u=gh_1', type: 'developer' },
     { id: 'gh_2', username: 'alex-org', avatarUrl: 'https://i.pravatar.cc/150?u=gh_2', type: 'organization' },
   ],
-  leetcode: [
-    { id: 'lc_1', username: 'alex_codes_fast', avatarUrl: 'https://i.pravatar.cc/150?u=lc_1', type: 'competitive' },
+  tiktok: [
+    { id: 'tk_1', username: '@alex_toks', avatarUrl: 'https://i.pravatar.cc/150?u=tk_1', type: 'creator' }
+  ],
+  discord: [
+    { id: 'dc_1', username: 'AlexJ#1234', avatarUrl: 'https://i.pravatar.cc/150?u=dc_1', type: 'personal' }
+  ],
+  facebook: [
+    { id: 'fb_1', username: 'Alex Johnson', avatarUrl: 'https://i.pravatar.cc/150?u=fb_1', type: 'personal' }
   ]
 };
 

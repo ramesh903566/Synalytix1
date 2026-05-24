@@ -110,14 +110,14 @@ export default function Auth() {
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
-              <Chrome className="w-5 h-5 text-zinc-700" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
+              <img src="/icons/google logo.jpeg" alt="Google" className="w-7 h-7 object-cover rounded-full scale-[1.25]" />
             </button>
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
-              <Twitter className="w-5 h-5 text-zinc-700" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
+              <img src="/icons/x icon.jpeg" alt="X" className="w-7 h-7 object-cover rounded-md scale-[1.25]" />
             </button>
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
-              <Github className="w-5 h-5 text-zinc-700" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
+              <img src="/icons/githubicon.png" alt="GitHub" className="w-7 h-7 object-cover rounded-full scale-[1.25]" />
             </button>
           </div>
 

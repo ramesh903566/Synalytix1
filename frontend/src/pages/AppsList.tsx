@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion';
+import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
@@ -7,6 +8,7 @@ import { Check, Plus } from 'lucide-react';
 export default function AppsList() {
   const { connectedApps } = useAppContext();
   const navigate = useNavigate();
+  const [showUpcoming, setShowUpcoming] = useState(false);
 
   return (
     <motion.div 
@@ -21,10 +23,34 @@ export default function AppsList() {
         </header>
         
         {/* User requested new upcoming apps button upper right */}
-        <button className="px-5 py-2.5 bg-white text-[#1A1A1A] border border-[#EFEFEF] rounded-lg font-medium text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-neutral-50 transition-colors">
-          <Plus className="w-3 h-3" />
-          Request App
-        </button>
+        <div className="relative">
+          <button 
+            onClick={() => setShowUpcoming(!showUpcoming)}
+            className="px-5 py-2.5 bg-white text-[#1A1A1A] border border-[#EFEFEF] rounded-lg font-medium text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-neutral-50 transition-colors"
+          >
+            <Plus className="w-3 h-3" />
+            Request App
+          </button>
+          
+          <AnimatePresence>
+            {showUpcoming && (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                className="absolute right-0 top-full mt-2 w-56 bg-white border border-[#EFEFEF] rounded-xl shadow-xl z-50 p-4"
+              >
+                 <h3 className="font-bold text-[#999] uppercase tracking-widest text-[10px] mb-3">Upcoming Integrations</h3>
+                 <div className="flex flex-col gap-2 opacity-50 grayscale">
+                    {/* Replaced TikTok with Pinterest since TikTok is now connected */}
+                    <div className="px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">Pinterest</div>
+                    <div className="px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">Hashnode</div>
+                    <div className="px-3 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">Dev.to</div>
+                 </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -42,8 +68,12 @@ export default function AppsList() {
               onClick={() => isConnected ? navigate(`/app/apps/${app.id}`) : navigate(`/app/apps/${app.id}/connect`)}
             >
               <div className="flex justify-between items-start mb-12">
-                <div className={`w-10 h-10 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm ${app.color}`}>
-                  {app.name.charAt(0)}
+                <div className={`w-10 h-10 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm overflow-hidden ${app.color}`}>
+                  {(app as any).icon ? (
+                    <img src={(app as any).icon} alt={app.name} className="w-full h-full object-cover scale-[1.25]" />
+                  ) : (
+                    app.name.charAt(0)
+                  )}
                 </div>
                 
                 {isConnected ? (
@@ -66,15 +96,7 @@ export default function AppsList() {
           );
         })}
       </div>
-      
-      <div className="mt-16 text-center border-t border-[#F5F5F5] pt-16">
-         <h3 className="font-bold text-[#999] uppercase tracking-widest text-[10px] mb-6">Upcoming Integrations</h3>
-         <div className="flex gap-4 justify-center opacity-50 grayscale">
-            <div className="px-4 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">TikTok</div>
-            <div className="px-4 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">Hashnode</div>
-            <div className="px-4 py-2 bg-neutral-100 border border-neutral-200 rounded-lg text-xs font-medium text-[#1A1A1A]">Dev.to</div>
-         </div>
-      </div>
+
     </motion.div>
   );
 }

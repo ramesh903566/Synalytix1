@@ -74,7 +74,13 @@ export default function AppLayout() {
                   return (
                     <div key={appId} onClick={() => navigate(`/app/apps/${appId}`)} className={cn("flex flex-col items-center gap-1 cursor-pointer", isActive ? "opacity-100" : "opacity-40 hover:opacity-100 transition-opacity")}>
                       <div className={cn("w-12 h-12 rounded-full border-2 p-[2px]", isActive ? "border-black" : "border-transparent")}>
-                        <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px]", isActive ? "bg-black text-white" : "bg-neutral-200 text-[#1A1A1A]")}>{appInfo.name.substring(0, 2).toUpperCase()}</div>
+                        <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px] overflow-hidden", isActive ? "bg-black text-white" : "bg-neutral-200 text-[#1A1A1A]")}>
+                          {(appInfo as any).icon ? (
+                            <img src={(appInfo as any).icon} alt={appInfo.name} className="w-full h-full object-cover scale-[1.25]" />
+                          ) : (
+                            appInfo.name.substring(0, 2).toUpperCase()
+                          )}
+                        </div>
                       </div>
                       <span className="text-[9px] font-semibold uppercase text-[#1A1A1A]">{appInfo.name}</span>
                     </div>
