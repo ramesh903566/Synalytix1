@@ -149,8 +149,8 @@ export function LandingSections() {
                   playsInline 
                   className="w-full h-full object-cover"
                 />
-                <div className="absolute bottom-[18.2%] right-[13.1%] translate-x-1/2 translate-y-1/2 z-20 flex items-center rounded-2xl overflow-hidden bg-white shadow-lg">
-                  <img src="/icons/Synalytixlogo1.png" alt="Synalytix" className="h-10 w-auto object-cover scale-[1.15]" />
+                <div className="absolute bottom-[14.5%] right-[7.7%] translate-x-1/2 translate-y-1/2 z-20 flex items-center rounded-2xl overflow-hidden bg-white shadow-lg">
+                  <img src="/icons/Synalytixlogo1.png" alt="Synalytix" className="h-14 w-auto object-cover scale-[1.15]" />
                 </div>
              </div>
           </motion.div>
