@@ -1,0 +1,6 @@
+{
+  "name": "SocialSphere",
+  "description": "A centralized social media and integrated development platform for managing insights, cross-posting with AI optimization, and analytics.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

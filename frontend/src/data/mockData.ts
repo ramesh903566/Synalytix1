@@ -1,0 +1,34 @@
+export const MOCK_APPS = [
+  { id: 'instagram', name: 'Instagram', color: 'text-pink-600' },
+  { id: 'x', name: 'X (Twitter)', color: 'text-black' },
+  { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600' },
+  { id: 'github', name: 'GitHub', color: 'text-gray-800' },
+  { id: 'leetcode', name: 'LeetCode', color: 'text-yellow-600' }
+] as const;
+
+export const MOCK_ACCOUNTS: Record<string, any[]> = {
+  instagram: [
+    { id: 'ig_1', username: '@alex_design', avatarUrl: 'https://i.pravatar.cc/150?u=ig_1', type: 'creator' },
+    { id: 'ig_2', username: '@studio_shots', avatarUrl: 'https://i.pravatar.cc/150?u=ig_2', type: 'business' },
+  ],
+  x: [
+    { id: 'x_1', username: '@alex_dev', avatarUrl: 'https://i.pravatar.cc/150?u=x_1', type: 'personal' },
+  ],
+  linkedin: [
+    { id: 'li_1', username: 'Alex Johnson', avatarUrl: 'https://i.pravatar.cc/150?u=li_1', type: 'professional' },
+  ],
+  github: [
+    { id: 'gh_1', username: 'alexj-dev', avatarUrl: 'https://i.pravatar.cc/150?u=gh_1', type: 'developer' },
+    { id: 'gh_2', username: 'alex-org', avatarUrl: 'https://i.pravatar.cc/150?u=gh_2', type: 'organization' },
+  ],
+  leetcode: [
+    { id: 'lc_1', username: 'alex_codes_fast', avatarUrl: 'https://i.pravatar.cc/150?u=lc_1', type: 'competitive' },
+  ]
+};
+
+export const MOCK_POSTS = [
+  { id: 'p1', content: 'Just launched my new portfolio! #design #web', likes: 124, comments: 12, shares: 5, date: '2h ago' },
+  { id: 'p2', content: 'Exploring the new features in React 19. It is incredibly fast!', likes: 432, comments: 45, shares: 23, date: '1d ago' },
+  { id: 'p3', content: 'Design system concept for a fintech dashboard. Dark mode included.', likes: 89, comments: 8, shares: 2, date: '3d ago' },
+  { id: 'p4', content: 'Solved 5 hard Leetcode DP problems today, feeling productive.', likes: 56, comments: 4, shares: 1, date: '4d ago' },
+];
