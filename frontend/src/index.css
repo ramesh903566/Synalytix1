@@ -1,1 +1,33 @@
 @import "tailwindcss";
+
+@theme {
+  --font-display: "Anton", sans-serif;
+  --font-stats: "Bebas Neue", sans-serif;
+  --font-label: "Arimo", sans-serif;
+
+  --color-brand-primary: #3e32d3;
+  --color-brand-secondary: #276954;
+  --color-brand-tertiary: #4b4b7e;
+  --color-brand-bg: #f8fafc;
+}
+
+@layer base {
+  body {
+    background-color: var(--color-brand-bg);
+    background-image: radial-gradient(rgba(75, 75, 126, 0.15) 1px, transparent 1px);
+    background-size: 24px 24px;
+    background-position: 0 0;
+    color: #191c1e;
+  }
+}
+
+/* Completely Obliterate the Spline Watermark */
+#spline-hero-container canvas + div,
+#spline-hero-container canvas + a,
+#spline-hero-container canvas ~ div {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+  z-index: -9999 !important;
+}
