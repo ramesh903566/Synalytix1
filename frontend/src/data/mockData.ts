@@ -5,7 +5,8 @@ export const MOCK_APPS = [
   { id: 'github', name: 'GitHub', color: 'text-gray-800', icon: '/icons/githubicon.png' },
   { id: 'tiktok', name: 'TikTok', color: 'text-black', icon: '/icons/tiktok icon.jpeg' },
   { id: 'discord', name: 'Discord', color: 'text-indigo-600', icon: '/icons/discord.jpeg' },
-  { id: 'facebook', name: 'Facebook', color: 'text-blue-600', icon: '/icons/facebook icon.jpeg' }
+  { id: 'facebook', name: 'Facebook', color: 'text-blue-600', icon: '/icons/facebook icon.jpeg' },
+  { id: 'leetcode', name: 'LeetCode', color: 'text-yellow-600', icon: '/icons/leetcodeicon.png' }
 ] as const;
 
 export const MOCK_ACCOUNTS: Record<string, any[]> = {
@@ -31,6 +32,9 @@ export const MOCK_ACCOUNTS: Record<string, any[]> = {
   ],
   facebook: [
     { id: 'fb_1', username: 'Alex Johnson', avatarUrl: 'https://i.pravatar.cc/150?u=fb_1', type: 'personal' }
+  ],
+  leetcode: [
+    { id: 'lc_1', username: 'alex_coder', avatarUrl: 'https://i.pravatar.cc/150?u=lc_1', type: 'developer' }
   ]
 };
 
