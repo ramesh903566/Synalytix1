@@ -1,5 +1,5 @@
-import { motion } from 'framer-motion';
-import { Sparkles, Zap, TrendingUp, CheckCircle, ArrowRight, Star, ChevronDown, LayoutDashboard, Share2, BarChart3 } from 'lucide-react';
+import { motion } from 'motion/react';
+import { Sparkles, CheckCircle, ArrowRight, Star, ChevronDown, Share2, BarChart3 } from 'lucide-react';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -7,7 +7,7 @@ const fadeUp = {
   initial: { opacity: 0, y: 40 },
   whileInView: { opacity: 1, y: 0 },
   viewport: { once: true, margin: "-100px" },
-  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] }
+  transition: { duration: 0.7, ease: [0.16, 1, 0.3, 1] as const }
 };
 
 const staggerContainer = {
@@ -50,7 +50,7 @@ export function LandingSections() {
               You are wasting hours jumping between tabs.
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed mb-8">
-              Managing content across X, LinkedIn, Instagram, and GitHub means fragmented analytics, manual cross-posting, and lost audience context. It's impossible to scale your presence when your tools are disconnected.
+              Managing content across X, LinkedIn, Instagram, and GitHub means fragmented analytics, manual cross-posting, and lost audience context. It&apos;s impossible to scale your presence when your tools are disconnected.
             </p>
           </motion.div>
 
@@ -140,11 +140,17 @@ export function LandingSections() {
                <div className="w-3 h-3 rounded-full bg-yellow-400"></div>
                <div className="w-3 h-3 rounded-full bg-green-400"></div>
              </div>
-             <div className="w-full aspect-[16/9] bg-zinc-50 rounded-t-2xl border-t border-x border-zinc-200 flex items-center justify-center relative overflow-hidden">
-                <LayoutDashboard className="w-32 h-32 text-zinc-200 absolute" />
-                <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent z-10"></div>
-                <div className="relative z-20 text-center">
-                  <span className="px-4 py-2 bg-white/80 backdrop-blur-md rounded-full text-sm font-bold shadow-sm border border-zinc-200">Interactive Dashboard Preview</span>
+             <div className="w-full aspect-[16/9] bg-zinc-950 rounded-t-2xl border-t border-x border-zinc-200 flex items-center justify-center relative overflow-hidden shadow-inner">
+                <video 
+                  src="/icons/Synalytixvedio.mp4" 
+                  autoPlay 
+                  loop 
+                  muted 
+                  playsInline 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-[18.2%] right-[13.1%] translate-x-1/2 translate-y-1/2 z-20 flex items-center rounded-2xl overflow-hidden bg-white shadow-lg">
+                  <img src="/icons/Synalytixlogo1.png" alt="Synalytix" className="h-10 w-auto object-cover scale-[1.15]" />
                 </div>
              </div>
           </motion.div>
@@ -192,7 +198,7 @@ export function LandingSections() {
                 <div className="flex gap-1 mb-6">
                   {[1,2,3,4,5].map(star => <Star key={star} className="w-4 h-4 fill-brand-secondary text-brand-secondary" />)}
                 </div>
-                <p className="text-slate-700 mb-8 italic">"{t.text}"</p>
+                <p className="text-slate-700 mb-8 italic">&quot;{t.text}&quot;</p>
                 <div className="flex items-center gap-4">
                    <div className="w-10 h-10 rounded-full bg-slate-200"></div>
                    <div>
@@ -309,11 +315,8 @@ export function LandingSections() {
       {/* 13. Footer */}
       <footer className="py-12 bg-slate-950 text-slate-400 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 sm:px-12 flex flex-col md:flex-row justify-between items-center gap-6">
-           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-brand-primary rounded-lg flex items-center justify-center">
-               <span className="text-white font-display text-sm">S</span>
-             </div>
-             <span className="text-white font-display tracking-wider">Synalytix</span>
+           <div className="flex items-center rounded-2xl overflow-hidden opacity-90 hover:opacity-100 transition-opacity">
+             <img src="/icons/Synalytixlogo2.png" alt="Synalytix" className="h-10 w-auto object-cover scale-[1.15]" />
            </div>
            <div className="flex gap-6 text-sm">
              <button className="hover:text-white transition-colors">Terms</button>

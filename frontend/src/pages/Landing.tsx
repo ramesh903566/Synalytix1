@@ -13,11 +13,8 @@ export default function Landing() {
     <div className="min-h-screen selection:bg-brand-primary selection:text-white overflow-hidden font-label">
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 p-6 flex justify-between items-center z-50 bg-white/70 backdrop-blur-xl border-b border-white/20 shadow-sm">
-        <div className="font-display tracking-wide text-2xl flex items-center gap-3 text-slate-800">
-          <div className="w-10 h-10 bg-brand-primary rounded-xl flex items-center justify-center shadow-lg shadow-brand-primary/30">
-            <span className="text-white font-display text-xl">S</span>
-          </div>
-          Synalytix
+        <div className="flex items-center cursor-pointer rounded-2xl overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+          <img src="/icons/Synalytixlogo1.png" alt="Synalytix" className="h-12 w-auto object-cover scale-[1.15]" />
         </div>
         <div className="flex items-center gap-4">
           <button
