@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
@@ -9,6 +9,17 @@ export default function AppsList() {
   const { connectedApps } = useAppContext();
   const navigate = useNavigate();
   const [showUpcoming, setShowUpcoming] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowUpcoming(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <motion.div 
@@ -23,7 +34,7 @@ export default function AppsList() {
         </header>
         
         {/* User requested new upcoming apps button upper right */}
-        <div className="relative">
+        <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setShowUpcoming(!showUpcoming)}
             className="px-5 py-2.5 bg-white text-[#1A1A1A] border border-[#EFEFEF] rounded-lg font-medium text-[10px] uppercase tracking-widest flex items-center gap-2 hover:bg-neutral-50 transition-colors"

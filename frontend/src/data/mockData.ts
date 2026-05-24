@@ -2,7 +2,7 @@ export const MOCK_APPS = [
   { id: 'instagram', name: 'Instagram', color: 'text-pink-600', icon: '/icons/insta icon.jpeg' },
   { id: 'x', name: 'X', color: 'text-black', icon: '/icons/x icon.jpeg' },
   { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600', icon: '/icons/linked in icon.jpeg' },
-  { id: 'github', name: 'GitHub', color: 'text-gray-800', icon: '/icons/githubicon.png' },
+  { id: 'github', name: 'GitHub', color: 'text-gray-800', icon: '/icons/githubactuallogo.png' },
   { id: 'tiktok', name: 'TikTok', color: 'text-black', icon: '/icons/tiktok icon.jpeg' },
   { id: 'discord', name: 'Discord', color: 'text-indigo-600', icon: '/icons/discord.jpeg' },
   { id: 'facebook', name: 'Facebook', color: 'text-blue-600', icon: '/icons/facebook icon.jpeg' },

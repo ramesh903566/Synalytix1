@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { LayoutDashboard, Wand2, Grid3X3, Settings, BarChart3, Plus, Bell, Activity } from 'lucide-react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
@@ -11,6 +11,17 @@ export default function AppLayout() {
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
+  const notifRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
+        setShowNotifications(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navItems = [
     { name: 'Dashboard', path: '/app', icon: LayoutDashboard },
@@ -26,10 +37,10 @@ export default function AppLayout() {
       <aside className="w-64 border-r border-[#EFEFEF] bg-white flex flex-col z-10 flex-shrink-0">
         <div className="p-8">
           <div className="flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-xs">S</span>
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
+              <img src="/icons/Synalytixlogo1.png" alt="Synalytix Icon" className="w-full h-full object-cover scale-[1.15]" />
             </div>
-            <h1 className="text-lg font-semibold tracking-tight">Sinalytix</h1>
+            <h1 className="text-lg font-semibold tracking-tight">Synalytix</h1>
           </div>
           
           <nav className="space-y-6">
@@ -89,48 +100,50 @@ export default function AppLayout() {
             </div>
           </div>
           
-          <div className="flex items-center gap-4 relative">
-            <button onClick={() => setShowNotifications(!showNotifications)} className="relative w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors">
-              <Bell className="w-4 h-4 text-[#1A1A1A]" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
-            </button>
+          <div className="flex items-center gap-4">
+            <div className="relative flex items-center" ref={notifRef}>
+              <button onClick={() => setShowNotifications(!showNotifications)} className="relative w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors">
+                <Bell className="w-4 h-4 text-[#1A1A1A]" />
+                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+              </button>
 
-            <AnimatePresence>
-              {showNotifications && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                  animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                  className="absolute top-full right-0 mt-4 w-[320px] bg-white border border-[#EFEFEF] rounded-2xl shadow-xl z-50 overflow-hidden"
-                >
-                  <div className="p-4 border-b border-[#F5F5F5] flex justify-between items-center">
-                    <h3 className="font-semibold text-sm">Recent Activities</h3>
-                    <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-full font-bold">2 NEW</span>
-                  </div>
-                  <div className="max-h-[300px] overflow-y-auto">
-                    {[
-                      { title: 'Post Published', app: 'X (Twitter)', time: '5m ago' },
-                      { title: 'Insight Generated', app: 'Instagram', time: '12m ago' },
-                      { title: 'Draft Saved', app: 'LinkedIn', time: '1h ago' }
-                    ].map((notif, i) => (
-                      <div key={i} className="p-4 border-b border-[#F5F5F5] last:border-0 hover:bg-neutral-50 transition-colors flex gap-3">
-                        <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
-                          <Activity className="w-4 h-4 text-neutral-500" />
+              <AnimatePresence>
+                {showNotifications && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute top-full right-0 mt-4 w-[320px] bg-white border border-[#EFEFEF] rounded-2xl shadow-xl z-50 overflow-hidden"
+                  >
+                    <div className="p-4 border-b border-[#F5F5F5] flex justify-between items-center">
+                      <h3 className="font-semibold text-sm">Recent Activities</h3>
+                      <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-full font-bold">2 NEW</span>
+                    </div>
+                    <div className="max-h-[300px] overflow-y-auto">
+                      {[
+                        { title: 'Post Published', app: 'X (Twitter)', time: '5m ago' },
+                        { title: 'Insight Generated', app: 'Instagram', time: '12m ago' },
+                        { title: 'Draft Saved', app: 'LinkedIn', time: '1h ago' }
+                      ].map((notif, i) => (
+                        <div key={i} className="p-4 border-b border-[#F5F5F5] last:border-0 hover:bg-neutral-50 transition-colors flex gap-3">
+                          <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
+                            <Activity className="w-4 h-4 text-neutral-500" />
+                          </div>
+                          <div>
+                            <p className="text-xs font-semibold text-[#1A1A1A]">{notif.title}</p>
+                            <p className="text-[10px] text-[#666] mt-0.5">{notif.app}</p>
+                          </div>
+                          <span className="ml-auto text-[9px] text-[#999] whitespace-nowrap">{notif.time}</span>
                         </div>
-                        <div>
-                          <p className="text-xs font-semibold text-[#1A1A1A]">{notif.title}</p>
-                          <p className="text-[10px] text-[#666] mt-0.5">{notif.app}</p>
-                        </div>
-                        <span className="ml-auto text-[9px] text-[#999] whitespace-nowrap">{notif.time}</span>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="p-3 border-t border-[#F5F5F5] bg-neutral-50 text-center cursor-pointer hover:bg-neutral-100">
-                    <span className="text-[10px] font-bold text-black uppercase tracking-widest">Mark all as read</span>
-                  </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
+                      ))}
+                    </div>
+                    <div className="p-3 border-t border-[#F5F5F5] bg-neutral-50 text-center cursor-pointer hover:bg-neutral-100">
+                      <span className="text-[10px] font-bold text-black uppercase tracking-widest">Mark all as read</span>
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
 
             <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center border border-neutral-200 cursor-pointer hover:bg-neutral-200 transition-colors">
               <span className="text-[10px] font-bold text-[#1A1A1A]">AJ</span>

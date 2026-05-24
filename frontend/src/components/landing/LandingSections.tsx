@@ -47,7 +47,7 @@ export function LandingSections() {
               <span className="w-2 h-2 rounded-full bg-red-500 animate-pulse"></span> The Problem
             </div>
             <h2 className="text-4xl sm:text-5xl font-display font-semibold text-slate-900 leading-tight mb-6">
-              You are wasting hours jumping between tabs.
+              You are wasting hours jumping between applications.
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed mb-8">
               Managing content across X, LinkedIn, Instagram, and GitHub means fragmented analytics, manual cross-posting, and lost audience context. It&apos;s impossible to scale your presence when your tools are disconnected.
@@ -212,61 +212,7 @@ export function LandingSections() {
         </div>
       </section>
 
-      {/* 10. Pricing */}
-      <section className="py-32 relative">
-        <div className="max-w-7xl mx-auto px-6 sm:px-12">
-          <motion.div {...fadeUp} className="text-center mb-16">
-            <h2 className="text-4xl sm:text-5xl font-display font-semibold text-slate-900 mb-6">Simple, transparent pricing.</h2>
-            <p className="text-lg text-slate-600">Start for free, upgrade when you need more power.</p>
-          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto items-center">
-             {/* Starter */}
-             <div className="p-8 rounded-[2rem] bg-white border border-zinc-200 shadow-sm">
-               <h3 className="text-xl font-bold mb-2">Starter</h3>
-               <div className="mb-6"><span className="text-4xl font-display font-bold">$0</span><span className="text-zinc-500">/mo</span></div>
-               <p className="text-sm text-zinc-500 mb-8">Perfect for individuals just getting started.</p>
-               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> 2 Connected Accounts</li>
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> Basic Analytics</li>
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> 10 AI Generations/mo</li>
-               </ul>
-               <button onClick={() => navigate('/auth')} className="w-full py-3 rounded-xl font-bold text-sm bg-zinc-100 hover:bg-zinc-200 transition-colors text-zinc-800">Get Started</button>
-             </div>
-
-             {/* Pro */}
-             <div className="p-1 relative">
-               <div className="absolute inset-0 bg-gradient-to-b from-brand-primary to-brand-secondary rounded-[2rem]"></div>
-               <div className="relative p-8 rounded-[1.9rem] bg-white shadow-2xl">
-                 <div className="absolute top-0 right-8 -translate-y-1/2 bg-gradient-to-r from-brand-primary to-brand-secondary text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest">Most Popular</div>
-                 <h3 className="text-xl font-bold mb-2">Pro</h3>
-                 <div className="mb-6"><span className="text-4xl font-display font-bold">$19</span><span className="text-zinc-500">/mo</span></div>
-                 <p className="text-sm text-zinc-500 mb-8">For serious creators and developers.</p>
-                 <ul className="space-y-4 mb-8">
-                   <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle className="w-4 h-4 text-brand-primary" /> Unlimited Accounts</li>
-                   <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle className="w-4 h-4 text-brand-primary" /> Deep Analytics & History</li>
-                   <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle className="w-4 h-4 text-brand-primary" /> Unlimited AI Studio</li>
-                   <li className="flex items-center gap-2 text-sm font-medium"><CheckCircle className="w-4 h-4 text-brand-primary" /> Auto-Publishing</li>
-                 </ul>
-                 <button onClick={() => navigate('/auth')} className="w-full py-3 rounded-xl font-bold text-sm bg-slate-900 hover:bg-black transition-colors text-white shadow-lg">Start Free Trial</button>
-               </div>
-             </div>
-
-             {/* Custom */}
-             <div className="p-8 rounded-[2rem] bg-white border border-zinc-200 shadow-sm">
-               <h3 className="text-xl font-bold mb-2">Enterprise</h3>
-               <div className="mb-6"><span className="text-4xl font-display font-bold">Custom</span></div>
-               <p className="text-sm text-zinc-500 mb-8">For agencies managing multiple clients.</p>
-               <ul className="space-y-4 mb-8">
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> Team Workspaces</li>
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> Custom Integrations</li>
-                 <li className="flex items-center gap-2 text-sm"><CheckCircle className="w-4 h-4 text-zinc-400" /> Dedicated Account Manager</li>
-               </ul>
-               <button onClick={() => navigate('/auth')} className="w-full py-3 rounded-xl font-bold text-sm border border-zinc-200 hover:bg-zinc-50 transition-colors text-zinc-800">Contact Us</button>
-             </div>
-          </div>
-        </div>
-      </section>
 
       {/* 11. FAQ */}
       <section className="py-32 bg-zinc-50">
