@@ -4,7 +4,7 @@ import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Check, Plus } from 'lucide-react';
-import { Check, Plus } from 'lucide-react';
+import { getConnectionStatus } from '../lib/api';
 
 const APP_META: Record<string, { icon: string, desc: string, metrics?: string }> = {
   instagram: { icon: '📸', desc: 'View detailed reel performance, story views, profile visits and audience demographics.', metrics: '53.6K Views · 488 Followers' },
@@ -26,6 +26,17 @@ export default function AppsList() {
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
+    
+    // Check for OAuth callbacks
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('connected') === 'true') {
+      alert('Platform connected successfully!');
+      // Update this later when context handles real fetch
+    }
+    if (params.get('error')) {
+      alert(`Connection failed: ${params.get('error')}`);
+    }
+    
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 

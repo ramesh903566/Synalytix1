@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS, MOCK_ACCOUNTS, IG_OVERVIEW, IG_AUDIENCE, IG_CONTENT_POSTS } from '../data/mockData';
+import { connectPlatform } from '../lib/api';
 import { ArrowLeft, Plus, Heart, MessageCircle, Send, Bookmark, X, Eye, Activity, Info, ChevronDown, Users } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -52,7 +53,7 @@ export default function AppDetails() {
         </p>
         <div className="flex gap-4 justify-center">
           <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-full font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors">Cancel</button>
-          <button onClick={() => connectApp(id as any)} className="px-6 py-3 rounded-full font-medium text-white bg-black hover:bg-zinc-800 transition-colors">Authorize Application</button>
+          <button onClick={() => connectPlatform(id as string).catch(e => alert(e.message))} className="px-6 py-3 rounded-full font-medium text-white bg-black hover:bg-zinc-800 transition-colors">Authorize Application</button>
         </div>
       </motion.div>
     );
