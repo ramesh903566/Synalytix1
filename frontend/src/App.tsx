@@ -14,7 +14,16 @@ import Planner from './pages/Planner';
 import AppLayout from './layouts/AppLayout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isAuthenticated } = useAppContext();
+  const { isAuthenticated, isLoadingAuth } = useAppContext();
+  
+  if (isLoadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="w-8 h-8 border-2 border-black border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   if (!isAuthenticated) return <Navigate to="/auth" replace />;
   return <>{children}</>;
 }

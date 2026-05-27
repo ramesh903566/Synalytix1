@@ -35,10 +35,10 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 });
 
-// Stricter limit for OAuth routes (5 per 15 minutes)
+// Stricter limit for OAuth routes (increased for testing)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 5,
+  max: 100,
   message: { success: false, error: 'Too many auth requests. Please wait.' },
 });
 

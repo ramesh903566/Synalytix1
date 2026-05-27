@@ -15,29 +15,31 @@ import jwt from 'jsonwebtoken';
  *   })
  */
 export function authenticate(req: Request, res: Response, next: NextFunction): void {
-  // 1. Get the Authorization header
-  const authHeader = req.headers.authorization;
+  // 1. Get the Authorization header or query string token
+  let token = '';
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    res.status(401).json({
-      success: false,
-      error: 'Missing or invalid Authorization header. Expected: Bearer <token>',
-    });
-    return;
+  const authHeader = req.headers.authorization;
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    token = authHeader.split(' ')[1];
+  } else if (req.query.token && typeof req.query.token === 'string') {
+    // Fallback for browser redirects where headers can't be set
+    token = req.query.token;
   }
 
-  // 2. Extract the token
-  const token = authHeader.split(' ')[1];
-
   if (!token) {
-    res.status(401).json({ success: false, error: 'Token not found' });
+    res.status(401).json({
+      success: false,
+      error: 'Missing or invalid Authorization token.',
+    });
     return;
   }
 
   // 3. Verify the JWT using Supabase's JWT secret
   // This confirms the token was issued by YOUR Supabase project
+  // Supabase JWT secrets are base64-encoded, so we decode to a Buffer
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
+    const jwtSecret = Buffer.from(process.env.JWT_SECRET!, 'base64');
+    const decoded = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as jwt.JwtPayload;
 
     // 4. Attach user ID to request — all route handlers use this
     req.userId = decoded.sub; // Supabase puts user UUID in 'sub' claim
@@ -80,7 +82,8 @@ export function optionalAuthenticate(req: Request, res: Response, next: NextFunc
   const token = authHeader.split(' ')[1];
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as jwt.JwtPayload;
+    const jwtSecret = Buffer.from(process.env.JWT_SECRET!, 'base64');
+    const decoded = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as jwt.JwtPayload;
     req.userId = decoded.sub;
     req.userEmail = decoded.email;
   } catch {

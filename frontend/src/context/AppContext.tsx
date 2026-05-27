@@ -33,6 +33,7 @@ export interface PlannerTask {
 
 interface AppContextType {
   isAuthenticated: boolean;
+  isLoadingAuth: boolean;
   login: () => void;
   logout: () => void;
   connectedApps: AppName[];
@@ -55,6 +56,7 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [connectedApps, setConnectedApps] = useState<AppName[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [savedDrafts, setSavedDrafts] = useState<DraftPost[]>([]);
@@ -128,6 +130,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
       if (session) refreshConnections();
+      setIsLoadingAuth(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -137,6 +140,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       } else {
         setConnectedApps([]);
       }
+      setIsLoadingAuth(false);
     });
 
     return () => subscription.unsubscribe();
@@ -144,7 +148,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={{
-      isAuthenticated, login, logout,
+      isAuthenticated, isLoadingAuth, login, logout,
       connectedApps, connectApp, disconnectApp,
       scheduledPosts, addScheduledPost, deleteScheduledPost,
       savedDrafts, saveDraft, deleteDraft,
