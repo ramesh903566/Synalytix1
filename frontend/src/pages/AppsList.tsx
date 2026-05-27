@@ -4,7 +4,15 @@ import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { Check, Plus } from 'lucide-react';
+import { Check, Plus } from 'lucide-react';
 
+const APP_META: Record<string, { icon: string, desc: string, metrics?: string }> = {
+  instagram: { icon: '📸', desc: 'View detailed reel performance, story views, profile visits and audience demographics.', metrics: '53.6K Views · 488 Followers' },
+  x: { icon: '𝕏', desc: 'Track tweet impressions, profile clicks, engagement rates and follower trends over time.', metrics: '12K Impressions · +24 Follows' },
+  linkedin: { icon: '💼', desc: 'Track post impressions, profile views, connection growth and professional engagement.', metrics: 'Connect to sync analytics' },
+  github: { icon: '⌥', desc: 'Monitor contributions, repository stars, followers and coding activity heatmap.', metrics: '89 Contributions · 6 Repos' },
+  leetcode: { icon: '🎯', desc: 'Track problems solved, acceptance rate, difficulty breakdown and submission history.', metrics: '28 Solved · 94.6% Acceptance' },
+};
 export default function AppsList() {
   const { connectedApps } = useAppContext();
   const navigate = useNavigate();
@@ -30,7 +38,7 @@ export default function AppsList() {
       <div className="flex justify-between items-end mb-10">
         <header>
           <h1 className="text-xl font-semibold tracking-tight mb-2 text-[#1A1A1A]">Applications</h1>
-          <p className="text-[#666] text-sm font-light">Connect your external platforms to start managing and cross-posting.</p>
+          <p className="text-[#666] text-sm font-light">Connect your platforms to manage and analyze your digital presence.</p>
         </header>
         
         {/* User requested new upcoming apps button upper right */}
@@ -64,33 +72,21 @@ export default function AppsList() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
         {MOCK_APPS.map(app => {
           const isConnected = connectedApps.includes(app.id as any);
-          
+          const meta = APP_META[app.id];
           return (
-            <div 
-              key={app.id} 
-              className={`p-6 rounded-2xl border transition-all cursor-pointer ${
-                isConnected 
-                  ? 'bg-white border-[#EFEFEF]' 
-                  : 'bg-neutral-50 border-transparent hover:bg-white hover:border-[#EFEFEF]'
-              }`}
-              onClick={() => isConnected ? navigate(`/app/apps/${app.id}`) : navigate(`/app/apps/${app.id}/connect`)}
-            >
-              <div className="flex justify-between items-start mb-12">
-                <div className={`w-10 h-10 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm overflow-hidden ${app.color}`}>
-                  {(app as any).icon ? (
-                    <img src={(app as any).icon} alt={app.name} className="w-full h-full object-cover scale-[1.25]" />
-                  ) : (
-                    app.name.charAt(0)
-                  )}
+            <div key={app.id}
+              className={`p-6 rounded-2xl border transition-all cursor-pointer group ${isConnected ? 'bg-white border-[#EFEFEF] hover:border-neutral-300' : 'bg-neutral-50 border-transparent hover:bg-white hover:border-[#EFEFEF]'}`}
+              onClick={() => isConnected ? navigate(`/app/apps/${app.id}`) : navigate(`/app/apps/${app.id}/connect`)}>
+              <div className="flex justify-between items-start mb-8">
+                <div className="w-11 h-11 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center text-xl shadow-sm">
+                  {meta?.icon || app.name.charAt(0)}
                 </div>
-                
                 {isConnected ? (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded text-[9px] font-bold uppercase tracking-widest border border-green-100">
-                    <Check className="w-3 h-3" />
-                    Connected
+                    <Check className="w-3 h-3"/> Connected
                   </span>
                 ) : (
                   <span className="px-3 py-1 bg-neutral-100 text-neutral-500 rounded text-[9px] font-bold uppercase tracking-widest border border-neutral-200">
@@ -98,11 +94,14 @@ export default function AppsList() {
                   </span>
                 )}
               </div>
-              
-              <h3 className="text-sm font-semibold mb-1 text-[#1A1A1A]">{app.name}</h3>
-              <p className="text-[#666] text-xs font-light leading-relaxed">
-                {isConnected ? 'Manage accounts and view analytics.' : 'Click to authorize connection and sync.'}
-              </p>
+              <h3 className="text-sm font-semibold mb-2 text-[#1A1A1A]">{app.name}</h3>
+              <p className="text-[#666] text-xs font-light leading-relaxed mb-3">{meta?.desc}</p>
+              {isConnected && meta?.metrics && (
+                <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest border-t border-[#F5F5F5] pt-3 mt-3">{meta.metrics}</p>
+              )}
+              {!isConnected && (
+                <p className="text-[10px] font-semibold text-neutral-400 uppercase tracking-widest">Click to authorize →</p>
+              )}
             </div>
           );
         })}

@@ -25,8 +25,8 @@ export default function Auth() {
       {/* Visual Side */}
       <div className="hidden md:flex flex-col bg-zinc-50 p-12 justify-between border-r border-zinc-200 relative overflow-hidden">
         <div className="relative z-10 flex items-center gap-2 font-medium tracking-tight text-xl">
-          <div className="w-6 h-6 rounded-md overflow-hidden flex items-center justify-center">
-            <img src="/icons/Synalytixlogo1.png" alt="Synalytix Icon" className="w-full h-full object-cover scale-[1.15]" />
+           <div className="w-6 h-6 bg-black rounded-md flex items-center justify-center">
+            <Sparkles className="w-3 h-3 text-white" />
           </div>
           Synalytix
         </div>
@@ -110,14 +110,14 @@ export default function Auth() {
           </div>
 
           <div className="grid grid-cols-3 gap-3">
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
-              <img src="/icons/google logo.jpeg" alt="Google" className="w-7 h-7 object-cover rounded-full scale-[1.25]" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
+              <Chrome className="w-5 h-5 text-zinc-700" />
             </button>
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
-              <img src="/icons/x icon.jpeg" alt="X" className="w-7 h-7 object-cover rounded-md scale-[1.25]" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
+              <Twitter className="w-5 h-5 text-zinc-700" />
             </button>
-            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors overflow-hidden">
-              <img src="/icons/githubactuallogo.png" alt="GitHub" className="w-7 h-7 object-cover rounded-full scale-[1.25]" />
+            <button type="button" onClick={handleProviderLogin} className="flex justify-center items-center p-3 border border-zinc-200 rounded-xl hover:bg-zinc-50 transition-colors">
+              <Github className="w-5 h-5 text-zinc-700" />
             </button>
           </div>
 

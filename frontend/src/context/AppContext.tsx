@@ -18,6 +18,17 @@ export interface DraftPost {
   createdAt: string;
 }
 
+export interface PlannerTask {
+  id: string;
+  title: string;
+  projectId?: string;
+  status: 'todo' | 'scheduled' | 'done' | 'unplanned';
+  scheduledDate?: string;
+  scheduledTime?: string;
+  priority: 'low' | 'medium' | 'high';
+  createdAt: string;
+}
+
 interface AppContextType {
   isAuthenticated: boolean;
   login: () => void;
@@ -31,15 +42,26 @@ interface AppContextType {
   savedDrafts: DraftPost[];
   saveDraft: (draft: Omit<DraftPost, 'id' | 'createdAt'>) => void;
   deleteDraft: (id: string) => void;
+  plannerTasks: PlannerTask[];
+  addPlannerTask: (task: Omit<PlannerTask, 'id' | 'createdAt'>) => void;
+  updatePlannerTask: (id: string, updates: Partial<PlannerTask>) => void;
+  deletePlannerTask: (id: string) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [connectedApps, setConnectedApps] = useState<AppName[]>(['github']); // start with one for demo
+  const [connectedApps, setConnectedApps] = useState<AppName[]>(['instagram', 'github', 'leetcode']);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [savedDrafts, setSavedDrafts] = useState<DraftPost[]>([]);
+  const [plannerTasks, setPlannerTasks] = useState<PlannerTask[]>([
+    { id: 'pt1', title: 'Post Tuesday Reel', projectId: 'content', status: 'scheduled', scheduledDate: '2026-05-27', scheduledTime: '21:00', priority: 'high', createdAt: new Date().toISOString() },
+    { id: 'pt2', title: 'Update GitHub README', projectId: 'dev', status: 'todo', priority: 'medium', createdAt: new Date().toISOString() },
+    { id: 'pt3', title: 'Reply to all Instagram comments', projectId: 'content', status: 'unplanned', priority: 'low', createdAt: new Date().toISOString() },
+    { id: 'pt4', title: 'Solve 2 LeetCode Hard problems', projectId: 'dev', status: 'done', priority: 'high', createdAt: new Date().toISOString() },
+    { id: 'pt5', title: 'LinkedIn post about Synalytix', projectId: 'content', status: 'unplanned', priority: 'medium', createdAt: new Date().toISOString() },
+  ]);
 
   const login = () => setIsAuthenticated(true);
   const logout = () => {
@@ -50,9 +72,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const connectApp = (app: AppName) => {
-    if (!connectedApps.includes(app)) {
-      setConnectedApps([...connectedApps, app]);
-    }
+    if (!connectedApps.includes(app)) setConnectedApps([...connectedApps, app]);
   };
 
   const disconnectApp = (app: AppName) => {
@@ -60,12 +80,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const addScheduledPost = (post: Omit<ScheduledPost, 'id' | 'status'>) => {
-    const newPost: ScheduledPost = {
-      ...post,
-      id: Math.random().toString(36).substr(2, 9),
-      status: 'scheduled'
-    };
-    setScheduledPosts(prev => [newPost, ...prev]);
+    setScheduledPosts(prev => [{ ...post, id: Math.random().toString(36).substr(2, 9), status: 'scheduled' }, ...prev]);
   };
 
   const deleteScheduledPost = (id: string) => {
@@ -73,35 +88,33 @@ export function AppProvider({ children }: { children: ReactNode }) {
   };
 
   const saveDraft = (draft: Omit<DraftPost, 'id' | 'createdAt'>) => {
-    const newDraft: DraftPost = {
-      ...draft,
-      id: Math.random().toString(36).substr(2, 9),
-      createdAt: new Date().toISOString()
-    };
-    setSavedDrafts(prev => [newDraft, ...prev]);
+    setSavedDrafts(prev => [{ ...draft, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() }, ...prev]);
   };
 
   const deleteDraft = (id: string) => {
     setSavedDrafts(prev => prev.filter(p => p.id !== id));
   };
 
+  const addPlannerTask = (task: Omit<PlannerTask, 'id' | 'createdAt'>) => {
+    setPlannerTasks(prev => [{ ...task, id: Math.random().toString(36).substr(2, 9), createdAt: new Date().toISOString() }, ...prev]);
+  };
+
+  const updatePlannerTask = (id: string, updates: Partial<PlannerTask>) => {
+    setPlannerTasks(prev => prev.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
+  const deletePlannerTask = (id: string) => {
+    setPlannerTasks(prev => prev.filter(t => t.id !== id));
+  };
+
   return (
-    <AppContext.Provider
-      value={{
-        isAuthenticated,
-        login,
-        logout,
-        connectedApps,
-        connectApp,
-        disconnectApp,
-        scheduledPosts,
-        addScheduledPost,
-        deleteScheduledPost,
-        savedDrafts,
-        saveDraft,
-        deleteDraft
-      }}
-    >
+    <AppContext.Provider value={{
+      isAuthenticated, login, logout,
+      connectedApps, connectApp, disconnectApp,
+      scheduledPosts, addScheduledPost, deleteScheduledPost,
+      savedDrafts, saveDraft, deleteDraft,
+      plannerTasks, addPlannerTask, updatePlannerTask, deletePlannerTask,
+    }}>
       {children}
     </AppContext.Provider>
   );
@@ -109,8 +122,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
 export function useAppContext() {
   const context = useContext(AppContext);
-  if (context === undefined) {
-    throw new Error('useAppContext must be used within an AppProvider');
-  }
+  if (context === undefined) throw new Error('useAppContext must be used within an AppProvider');
   return context;
 }

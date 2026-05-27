@@ -5,149 +5,187 @@ import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 
 export default function Settings() {
-  const { connectedApps } = useAppContext();
-  const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'integrations'>('account');
+  const { connectedApps, disconnectApp } = useAppContext();
+  const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'integrations' | 'billing'>('account');
   const [saved, setSaved] = useState(false);
-
-  // Form states
-  const [profile, setProfile] = useState({ name: 'Alex Johnson', email: 'alex@example.com' });
-  const [prefs, setPrefs] = useState({ format: 'PNG', tone: 'Professional', aiAggressiveness: 'Medium' });
+  const [profile, setProfile] = useState({ name: 'Ramesh Kumar', email: 'ramesh@synalytix.ai', bio: 'Developer & creator building Synalytix 🚀', handle: '@ramesh988025' });
+  const [prefs, setPrefs] = useState({ format: 'PNG', tone: 'Casual', aiAggressiveness: 'Medium', theme: 'Light', notifications: true, weeklyDigest: true });
 
   const handleSave = () => {
     setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+    setTimeout(() => setSaved(false), 2500);
   };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className="max-w-4xl mx-auto"
-    >
-      <header className="mb-10 flex justify-between items-end">
+    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-4xl mx-auto">
+      <header className="mb-8 flex justify-between items-end">
         <div>
           <h1 className="text-xl font-semibold tracking-tight mb-2 text-[#1A1A1A]">Settings</h1>
-          <p className="text-[#666] text-sm font-light">Customize your Sinalytix experience.</p>
+          <p className="text-[#666] text-sm font-light">Customize your Synalytix experience.</p>
         </div>
-        {saved && (
-          <span className="flex items-center gap-2 text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100">
-            <CheckCircle2 className="w-4 h-4" /> SAVED
-          </span>
-        )}
+        <AnimatePresence>
+          {saved && (
+            <motion.span initial={{opacity:0,y:4}} animate={{opacity:1,y:0}} exit={{opacity:0}} className="flex items-center gap-2 text-xs font-bold text-green-600 bg-green-50 px-3 py-1.5 rounded-lg border border-green-100">
+              <CheckCircle2 className="w-4 h-4"/> SAVED
+            </motion.span>
+          )}
+        </AnimatePresence>
       </header>
 
       <div className="bg-white rounded-2xl border border-[#EFEFEF] overflow-hidden">
-         <div className="grid grid-cols-1 md:grid-cols-4 min-h-[600px]">
-            {/* Sidebar nav inside settings */}
-            <div className="border-r border-[#EFEFEF] bg-[#FBFBFB] p-6">
-               <nav className="space-y-1">
-                 <button 
-                   onClick={() => setActiveTab('account')}
-                   className={`w-full text-left px-4 py-2.5 rounded-xl font-medium transition-colors ${activeTab === 'account' ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#EFEFEF]' : 'text-[#666] hover:bg-neutral-100'}`}
-                 >Account</button>
-                 <button 
-                   onClick={() => setActiveTab('preferences')}
-                   className={`w-full text-left px-4 py-2.5 rounded-xl font-medium transition-colors ${activeTab === 'preferences' ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#EFEFEF]' : 'text-[#666] hover:bg-neutral-100'}`}
-                 >Preferences</button>
-                 <button 
-                   onClick={() => setActiveTab('integrations')}
-                   className={`w-full text-left px-4 py-2.5 rounded-xl font-medium transition-colors ${activeTab === 'integrations' ? 'bg-white text-[#1A1A1A] shadow-sm border border-[#EFEFEF]' : 'text-[#666] hover:bg-neutral-100'}`}
-                 >Integrations</button>
-               </nav>
-            </div>
-            
-            {/* Content block */}
-            <div className="col-span-3 p-8 md:p-12 relative overflow-hidden">
-               <AnimatePresence mode="wait">
-                 {activeTab === 'account' && (
-                   <motion.div key="account" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                     <h2 className="text-sm font-semibold uppercase tracking-widest text-[#1A1A1A] mb-8 pb-4 border-b border-[#F5F5F5]">Profile Configuration</h2>
-                     <div className="space-y-6 max-w-md">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-2 block">Full Name</label>
-                          <input type="text" value={profile.name} onChange={(e) => setProfile({...profile, name: e.target.value})} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-sm outline-none focus:border-black text-[#1A1A1A]" />
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-2 block">Email Address</label>
-                          <input type="email" value={profile.email} onChange={(e) => setProfile({...profile, email: e.target.value})} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-sm outline-none focus:border-black text-[#1A1A1A]" />
-                        </div>
-                        <div className="pt-4">
-                          <button onClick={handleSave} className="px-6 py-2 bg-black text-white text-xs font-bold rounded-lg tracking-wide">SAVE CHANGES</button>
-                        </div>
-                     </div>
-                   </motion.div>
-                 )}
+        <div className="grid grid-cols-1 md:grid-cols-4 min-h-[600px]">
+          {/* Sidebar */}
+          <div className="border-r border-[#EFEFEF] bg-[#FBFBFB] p-5">
+            <nav className="space-y-1">
+              {([['account','Account'],['preferences','Preferences'],['integrations','Integrations'],['billing','Billing']] as [typeof activeTab, string][]).map(([key,label])=>(
+                <button key={key} onClick={()=>setActiveTab(key)}
+                  className={`w-full text-left px-4 py-2.5 rounded-xl text-sm font-medium transition-colors ${activeTab===key?'bg-white text-[#1A1A1A] shadow-sm border border-[#EFEFEF]':'text-[#666] hover:bg-neutral-100'}`}>
+                  {label}
+                </button>
+              ))}
+            </nav>
+          </div>
 
-                 {activeTab === 'preferences' && (
-                   <motion.div key="preferences" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                     <h2 className="text-sm font-semibold uppercase tracking-widest text-[#1A1A1A] mb-8 pb-4 border-b border-[#F5F5F5]">Content Optimization Defaults</h2>
-                     <div className="space-y-6 max-w-md">
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-2 block">Default Image Format</label>
-                          <select value={prefs.format} onChange={(e) => setPrefs({...prefs, format: e.target.value})} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-sm outline-none focus:border-black text-[#1A1A1A]">
-                            <option value="PNG">High Quality (PNG)</option>
-                            <option value="JPEG">Optimized (JPEG)</option>
-                            <option value="WEBP">Web Performance (WEBP)</option>
-                          </select>
-                        </div>
-                        <div>
-                          <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-2 block">Default Description Tone</label>
-                          <select value={prefs.tone} onChange={(e) => setPrefs({...prefs, tone: e.target.value})} className="w-full p-3 bg-neutral-50 border border-neutral-200 rounded-lg text-sm outline-none focus:border-black text-[#1A1A1A]">
-                            <option value="Professional">Professional & Clean</option>
-                            <option value="Casual">Casual & Approachable</option>
-                            <option value="Energetic">Energetic & Hype</option>
-                            <option value="Technical">Technical & Developer-focused</option>
-                          </select>
-                        </div>
-                        <div>
-                           <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] mb-2 block">AI Optimization Level</label>
-                           <div className="flex gap-4">
-                             {['Low', 'Medium', 'Aggressive'].map(level => (
-                               <button 
-                                 key={level}
-                                 onClick={() => setPrefs({...prefs, aiAggressiveness: level})}
-                                 className={`flex-1 py-2 rounded-lg text-xs font-semibold border transition-all ${prefs.aiAggressiveness === level ? 'bg-black text-white border-black' : 'bg-white text-[#666] border-[#EFEFEF] hover:bg-neutral-50'}`}
-                               >
-                                 {level}
-                               </button>
-                             ))}
-                           </div>
-                           <p className="text-[10px] text-[#999] mt-2 italic">How much the AI should alter your original description.</p>
-                        </div>
-                        <div className="pt-4">
-                          <button onClick={handleSave} className="px-6 py-2 bg-black text-white text-xs font-bold rounded-lg tracking-wide">SAVE PREFERENCES</button>
-                        </div>
-                     </div>
-                   </motion.div>
-                 )}
+          {/* Content */}
+          <div className="col-span-3 p-8 md:p-10">
 
-                 {activeTab === 'integrations' && (
-                   <motion.div key="integrations" initial={{ opacity: 0, x: 10 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -10 }}>
-                     <h2 className="text-sm font-semibold uppercase tracking-widest text-[#1A1A1A] mb-8 pb-4 border-b border-[#F5F5F5]">Connected Accounts</h2>
-                     <div className="space-y-4">
-                        {MOCK_APPS.filter(app => connectedApps.includes(app.id as any)).map(app => (
-                           <div key={app.id} className="flex justify-between items-center p-4 rounded-xl border border-[#EFEFEF] bg-[#FBFBFB]">
-                             <div className="flex items-center gap-4">
-                               <div className={`w-10 h-10 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm ${app.color}`}>
-                                 {app.name.charAt(0)}
-                               </div>
-                               <div>
-                                  <h3 className="text-sm font-semibold text-[#1A1A1A]">{app.name}</h3>
-                                  <p className="text-[10px] uppercase text-green-600 font-bold tracking-widest">Active Connection</p>
-                               </div>
-                             </div>
-                             <button className="text-xs font-bold text-[#666] hover:text-black hover:bg-neutral-100 px-3 py-1.5 rounded transition-all">Manage</button>
-                           </div>
-                        ))}
-                        {connectedApps.length === 0 && (
-                          <div className="text-sm text-[#666]">No active connections. Go to the Apps section.</div>
-                        )}
-                     </div>
-                   </motion.div>
-                 )}
-               </AnimatePresence>
-            </div>
-         </div>
+            {activeTab === 'account' && (
+              <div className="space-y-6">
+                <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Account Details</h2>
+                <div className="flex items-center gap-5 mb-8">
+                  <div className="w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center text-white font-bold text-xl">RK</div>
+                  <div>
+                    <button className="text-xs font-bold border border-neutral-200 px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors">Change photo</button>
+                    <p className="text-[10px] text-[#999] mt-1">JPG, PNG up to 2MB</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] block mb-2">Full Name</label>
+                    <input value={profile.name} onChange={e=>setProfile({...profile,name:e.target.value})} className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] block mb-2">Handle</label>
+                    <input value={profile.handle} onChange={e=>setProfile({...profile,handle:e.target.value})} className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                  </div>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] block mb-2">Email Address</label>
+                  <input value={profile.email} onChange={e=>setProfile({...profile,email:e.target.value})} className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                </div>
+                <div>
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-[#999] block mb-2">Bio</label>
+                  <textarea value={profile.bio} onChange={e=>setProfile({...profile,bio:e.target.value})} rows={3} className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB] resize-none"/>
+                </div>
+                <div className="border-t border-[#F5F5F5] pt-6">
+                  <h3 className="text-sm font-semibold text-[#1A1A1A] mb-4">Change Password</h3>
+                  <div className="space-y-3">
+                    <input type="password" placeholder="Current password" className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                    <input type="password" placeholder="New password" className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                    <input type="password" placeholder="Confirm new password" className="w-full text-sm p-3 border border-[#EFEFEF] rounded-xl outline-none focus:border-black transition-all bg-[#FBFBFB]"/>
+                  </div>
+                </div>
+                <button onClick={handleSave} className="px-6 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-neutral-800 transition-colors">Save Changes</button>
+              </div>
+            )}
+
+            {activeTab === 'preferences' && (
+              <div className="space-y-6">
+                <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Preferences</h2>
+                {[
+                  { label: 'Default Export Format', desc: 'Format for downloaded media', type: 'select', key: 'format', options: ['PNG','JPG','WEBP'] },
+                  { label: 'AI Writing Tone', desc: 'Tone used when generating captions', type: 'select', key: 'tone', options: ['Professional','Casual','Friendly','Bold','Minimal'] },
+                  { label: 'AI Aggressiveness', desc: 'How much AI rewrites your content', type: 'select', key: 'aiAggressiveness', options: ['Low','Medium','High'] },
+                ].map(pref => (
+                  <div key={pref.key} className="flex justify-between items-center py-4 border-b border-[#F5F5F5]">
+                    <div>
+                      <div className="text-sm font-medium text-[#1A1A1A]">{pref.label}</div>
+                      <div className="text-xs text-[#999] mt-0.5">{pref.desc}</div>
+                    </div>
+                    <select value={(prefs as any)[pref.key]} onChange={e=>setPrefs({...prefs,[pref.key]:e.target.value})}
+                      className="text-sm border border-[#EFEFEF] rounded-lg px-3 py-2 outline-none bg-[#FBFBFB] cursor-pointer">
+                      {pref.options.map(o=><option key={o}>{o}</option>)}
+                    </select>
+                  </div>
+                ))}
+                {[
+                  { label: 'Email Notifications', desc: 'Receive post performance alerts', key: 'notifications' },
+                  { label: 'Weekly Digest', desc: 'Sunday summary of all platform activity', key: 'weeklyDigest' },
+                ].map(toggle => (
+                  <div key={toggle.key} className="flex justify-between items-center py-4 border-b border-[#F5F5F5]">
+                    <div>
+                      <div className="text-sm font-medium text-[#1A1A1A]">{toggle.label}</div>
+                      <div className="text-xs text-[#999] mt-0.5">{toggle.desc}</div>
+                    </div>
+                    <button onClick={()=>setPrefs({...prefs,[toggle.key]:!(prefs as any)[toggle.key]})}
+                      className={`w-10 h-6 rounded-full transition-colors relative ${(prefs as any)[toggle.key]?'bg-black':'bg-neutral-200'}`}>
+                      <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-transform shadow-sm ${(prefs as any)[toggle.key]?'translate-x-5':'translate-x-1'}`}/>
+                    </button>
+                  </div>
+                ))}
+                <button onClick={handleSave} className="px-6 py-2.5 bg-black text-white text-sm font-medium rounded-xl hover:bg-neutral-800 transition-colors">Save Preferences</button>
+              </div>
+            )}
+
+            {activeTab === 'integrations' && (
+              <div className="space-y-4">
+                <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Connected Integrations</h2>
+                {MOCK_APPS.map(app => {
+                  const isConn = connectedApps.includes(app.id as any);
+                  return (
+                    <div key={app.id} className="flex items-center justify-between p-4 rounded-xl border border-[#EFEFEF] bg-[#FBFBFB]">
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-lg bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm ${app.color}`}>
+                          {app.name.charAt(0)}
+                        </div>
+                        <div>
+                          <div className="text-sm font-semibold text-[#1A1A1A]">{app.name}</div>
+                          <div className="text-[10px] text-[#999]">{isConn ? 'Connected and syncing' : 'Not connected'}</div>
+                        </div>
+                      </div>
+                      {isConn ? (
+                        <button onClick={()=>disconnectApp(app.id as any)} className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
+                          Disconnect
+                        </button>
+                      ) : (
+                        <span className="text-[10px] font-bold text-neutral-400 bg-neutral-100 border border-neutral-200 px-3 py-1.5 rounded-lg">
+                          Not Connected
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {activeTab === 'billing' && (
+              <div className="space-y-6">
+                <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Billing & Plan</h2>
+                <div className="p-5 bg-neutral-900 text-white rounded-2xl">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-neutral-400 mb-2">Current Plan</div>
+                  <div className="text-2xl font-bold mb-1">Pro</div>
+                  <div className="text-sm text-neutral-300">$12/month · Renews June 1, 2026</div>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  {[{name:'Free',price:'$0',features:['2 platforms','Basic analytics','5 posts/month'],current:false},
+                    {name:'Pro',price:'$12',features:['5 platforms','AI insights','Unlimited posts','Studio access'],current:true},
+                    {name:'Business',price:'$39',features:['15 platforms','Team members','Priority AI','API access'],current:false}].map(plan=>(
+                    <div key={plan.name} className={`p-4 rounded-xl border ${plan.current?'border-black bg-white shadow-sm':'border-[#EFEFEF] bg-[#FBFBFB]'}`}>
+                      <div className="font-bold text-[#1A1A1A] mb-1">{plan.name}</div>
+                      <div className="text-xl font-bold text-[#1A1A1A]">{plan.price}<span className="text-xs font-normal text-[#999]">/mo</span></div>
+                      <ul className="mt-3 space-y-1.5">
+                        {plan.features.map(f=><li key={f} className="text-[10px] text-[#666] flex items-center gap-1.5"><span className="text-green-500">✓</span>{f}</li>)}
+                      </ul>
+                      {!plan.current && <button className="mt-4 w-full py-1.5 text-[10px] font-bold border border-[#EFEFEF] rounded-lg hover:bg-neutral-100 transition-colors">Upgrade</button>}
+                      {plan.current && <div className="mt-4 text-[10px] font-bold text-center text-neutral-400">CURRENT</div>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+          </div>
+        </div>
       </div>
     </motion.div>
   );

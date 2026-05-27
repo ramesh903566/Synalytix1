@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { LayoutDashboard, Wand2, Grid3X3, Settings, BarChart3, Plus, Bell, Activity } from 'lucide-react';
+import { LayoutDashboard, Wand2, Grid3X3, Settings, BarChart3, Plus, Bell, Activity, CalendarCheck } from 'lucide-react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS } from '../data/mockData';
@@ -7,7 +7,7 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function AppLayout() {
-  const { connectedApps } = useAppContext();
+  const { connectedApps, logout } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
   const [showNotifications, setShowNotifications] = useState(false);
@@ -28,6 +28,7 @@ export default function AppLayout() {
     { name: 'Studio', path: '/app/studio', icon: Wand2 },
     { name: 'Apps', path: '/app/apps', icon: Grid3X3 },
     { name: 'Analytics', path: '/app/analytics', icon: BarChart3 },
+    { name: 'Planner', path: '/app/planner', icon: CalendarCheck },
     { name: 'Settings', path: '/app/settings', icon: Settings },
   ];
 
@@ -35,10 +36,10 @@ export default function AppLayout() {
     <div className="flex h-screen w-full bg-[#FBFBFB] text-[#1A1A1A] font-sans overflow-hidden">
       {/* Sidebar */}
       <aside className="w-64 border-r border-[#EFEFEF] bg-white flex flex-col z-10 flex-shrink-0">
-        <div className="p-8">
+        <div className="p-8 flex-1">
           <div className="flex items-center gap-2 mb-10">
-            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center">
-              <img src="/icons/Synalytixlogo1.png" alt="Synalytix Icon" className="w-full h-full object-cover scale-[1.15]" />
+            <div className="w-8 h-8 bg-black rounded-lg flex items-center justify-center">
+              <span className="text-white font-bold text-xs">S</span>
             </div>
             <h1 className="text-lg font-semibold tracking-tight">Synalytix</h1>
           </div>
@@ -67,9 +68,11 @@ export default function AppLayout() {
             </div>
           </nav>
         </div>
-
-
-
+        <div className="p-4 border-t border-[#EFEFEF]">
+          <button onClick={logout} className="w-full text-left px-3 py-2 text-xs text-[#999] hover:text-black transition-colors rounded-lg hover:bg-neutral-50">
+            Sign out
+          </button>
+        </div>
       </aside>
 
       {/* Main Content Area */}
@@ -79,23 +82,19 @@ export default function AppLayout() {
             <div className="flex gap-4">
               {/* Connected apps story style */}
               {connectedApps.map(appId => {
-                  const appInfo = MOCK_APPS.find(a => a.id === appId);
-                  if (!appInfo) return null;
-                  const isActive = location.pathname.includes(`/apps/${appId}`);
-                  return (
-                    <div key={appId} onClick={() => navigate(`/app/apps/${appId}`)} className={cn("flex flex-col items-center gap-1 cursor-pointer", isActive ? "opacity-100" : "opacity-40 hover:opacity-100 transition-opacity")}>
-                      <div className={cn("w-12 h-12 rounded-full border-2 p-[2px]", isActive ? "border-black" : "border-transparent")}>
-                        <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px] overflow-hidden", isActive ? "bg-black text-white" : "bg-neutral-200 text-[#1A1A1A]")}>
-                          {(appInfo as any).icon ? (
-                            <img src={(appInfo as any).icon} alt={appInfo.name} className="w-full h-full object-cover scale-[1.25]" />
-                          ) : (
-                            appInfo.name.substring(0, 2).toUpperCase()
-                          )}
-                        </div>
+                const appInfo = MOCK_APPS.find(a => a.id === appId);
+                if (!appInfo) return null;
+                const isActive = location.pathname.includes(`/apps/${appId}`);
+                return (
+                  <div key={appId} onClick={() => navigate(`/app/apps/${appId}`)} className={cn("flex flex-col items-center gap-1 cursor-pointer", isActive ? "opacity-100" : "opacity-40 hover:opacity-100 transition-opacity")}>
+                    <div className={cn("w-12 h-12 rounded-full border-2 p-[2px]", isActive ? "border-black" : "border-transparent")}>
+                      <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px]", isActive ? "bg-black text-white" : "bg-neutral-200 text-[#1A1A1A]")}>
+                        {appInfo.name.substring(0, 2).toUpperCase()}
                       </div>
-                      <span className="text-[9px] font-semibold uppercase text-[#1A1A1A]">{appInfo.name}</span>
                     </div>
-                  );
+                    <span className="text-[9px] font-semibold uppercase text-[#1A1A1A]">{appInfo.name}</span>
+                  </div>
+                );
               })}
             </div>
           </div>

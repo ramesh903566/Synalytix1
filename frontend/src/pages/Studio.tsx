@@ -122,7 +122,7 @@ export default function Studio() {
             <textarea
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Tell Arcane what you want to share..."
+              placeholder="Tell Synalytix what you want to share..."
               className="w-full p-4 bg-neutral-50 border border-neutral-200 rounded-xl text-sm h-32 outline-none focus:border-black transition-all resize-none text-[#1A1A1A]"
             />
           </div>
