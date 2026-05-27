@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS, MOCK_ACCOUNTS, IG_OVERVIEW, IG_AUDIENCE, IG_CONTENT_POSTS } from '../data/mockData';
-import { connectPlatform } from '../lib/api';
+import { connectPlatform, getGitHubData } from '../lib/api';
 import { ArrowLeft, Plus, Heart, MessageCircle, Send, Bookmark, X, Eye, Activity, Info, ChevronDown, Users } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -28,8 +28,27 @@ export default function AppDetails() {
   const [igTab, setIgTab] = useState<InsightsTab>('overview');
   const [contentSort, setContentSort] = useState<ContentSort>('Views');
   const [audienceSegment, setAudienceSegment] = useState<'overall'|'follows'|'unfollows'>('overall');
-  const [locationView, setLocationView] = useState<'Countries'|'Towns/cities'>('Countries');
   const [activeDay, setActiveDay] = useState('Su');
+
+  const [githubData, setGithubData] = useState<any>(null);
+  const [githubLoading, setGithubLoading] = useState(false);
+  const [githubError, setGithubError] = useState('');
+
+  useEffect(() => {
+    if (appInfo?.id === 'github' && isConnected) {
+      setGithubLoading(true);
+      getGitHubData()
+        .then(res => {
+          if (res.success) {
+            setGithubData(res.data);
+          } else {
+            setGithubError(res.error || 'Failed to fetch GitHub data');
+          }
+        })
+        .catch(err => setGithubError(err.message))
+        .finally(() => setGithubLoading(false));
+    }
+  }, [appInfo?.id, isConnected]);
 
   const accounts = id ? (MOCK_ACCOUNTS[id as string] || []) : [];
 
@@ -63,75 +82,66 @@ export default function AppDetails() {
   const days = ['Su','M','Tu','W','Th','F','Sa'];
 
   // ─── GITHUB ───
-  if (appInfo.id === 'github') return (
-    <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto">
-      <button onClick={() => navigate('/app/apps')} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-black mb-8 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Back to Apps
-      </button>
-      <div className="flex items-center gap-4 mb-10">
-        <div className="w-16 h-16 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm font-semibold text-2xl text-gray-800">G</div>
-        <div>
-          <h1 className="text-3xl font-semibold tracking-tight">GitHub Workspace</h1>
-          <p className="text-zinc-500 font-light text-sm">ramesh988025 · 89 contributions this year</p>
-        </div>
-        <div className="ml-auto flex gap-3">
-          <div className="text-center"><div className="text-2xl font-bold">6</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Repos</div></div>
-          <div className="text-center ml-4"><div className="text-2xl font-bold">89</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Contributions</div></div>
-          <div className="text-center ml-4"><div className="text-2xl font-bold">2</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Followers</div></div>
-        </div>
-      </div>
-      <h2 className="text-lg font-semibold mb-4">Popular repositories</h2>
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
-        {[
-          { name: 'ramesh988025', desc: 'Config files for my GitHub profile.', lang: 'HTML', color: 'bg-orange-500' },
-          { name: 'Portfolio', desc: 'About me', lang: 'HTML', color: 'bg-orange-500' },
-          { name: 'Landing-page', desc: 'This my First Landing page for freelancing', lang: 'HTML', color: 'bg-orange-500' },
-          { name: 'HOROLOGIUM-', desc: 'Details of the watch brands', lang: 'JavaScript', color: 'bg-yellow-400' },
-          { name: 'Churn-Predection-System-', desc: 'Production-ready ML system that predicts customer churn from historical telecom data and serves real-time predictions via a FastAPI REST API.', lang: 'Python', color: 'bg-blue-500' },
-          { name: 'Stock-Pro', desc: '', lang: 'HTML', color: 'bg-orange-500' },
-        ].map(repo => (
-          <div key={repo.name} className="border border-[#EFEFEF] rounded-xl p-5 bg-white flex flex-col gap-3 hover:border-neutral-300 transition-colors">
-            <div className="flex justify-between items-start">
-              <h3 className="text-[#0969DA] font-semibold hover:underline cursor-pointer text-sm">{repo.name}</h3>
-              <span className="text-[10px] border border-neutral-200 px-2 py-0.5 rounded-full text-neutral-500 font-semibold">Public</span>
-            </div>
-            {repo.desc && <p className="text-xs text-[#666] line-clamp-2 leading-relaxed">{repo.desc}</p>}
-            <div className="flex items-center gap-2 mt-auto pt-2">
-              <span className={`w-3 h-3 rounded-full ${repo.color}`}></span>
-              <span className="text-[10px] text-neutral-500 font-medium">{repo.lang}</span>
-            </div>
+  if (appInfo.id === 'github') {
+    if (githubLoading) return <div className="p-8 text-center text-zinc-500 mt-20">Loading GitHub data...</div>;
+    if (githubError) return <div className="p-8 text-center text-red-500 mt-20">{githubError}</div>;
+    if (!githubData) return null;
+
+    const { profile, repos, contributions } = githubData;
+
+    return (
+      <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto">
+        <button onClick={() => navigate('/app/apps')} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-black mb-8 transition-colors">
+          <ArrowLeft className="w-4 h-4" /> Back to Apps
+        </button>
+        <div className="flex items-center gap-4 mb-10">
+          <div className="w-16 h-16 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm font-semibold text-2xl text-gray-800">
+            {profile.avatar_url ? <img src={profile.avatar_url} alt="Avatar" className="w-full h-full rounded-2xl" /> : 'G'}
           </div>
-        ))}
-      </div>
-      <div className="border border-[#EFEFEF] rounded-xl p-6 bg-white">
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-base font-semibold">89 contributions in the last year</h2>
-          <div className="text-sm font-medium text-neutral-500 border border-neutral-200 px-3 py-1 rounded-lg cursor-pointer hover:bg-neutral-50">2026 ▾</div>
+          <div>
+            <h1 className="text-3xl font-semibold tracking-tight">GitHub Workspace</h1>
+            <p className="text-zinc-500 font-light text-sm">{profile.username} · {contributions?.total_this_year || 0} contributions this year</p>
+          </div>
+          <div className="ml-auto flex gap-3">
+            <div className="text-center"><div className="text-2xl font-bold">{profile.public_repos}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Repos</div></div>
+            <div className="text-center ml-4"><div className="text-2xl font-bold">{contributions?.total_this_year || 0}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Contributions</div></div>
+            <div className="text-center ml-4"><div className="text-2xl font-bold">{profile.followers}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Followers</div></div>
+          </div>
         </div>
-        <div className="w-full h-28 bg-[#F5F5F5] rounded-xl flex items-center justify-center border border-neutral-100 overflow-hidden">
-          <div className="flex gap-1 p-2">
-            {Array.from({length: 52}).map((_, col) => (
-              <div key={col} className="flex flex-col gap-1">
-                {Array.from({length: 7}).map((_, row) => {
-                  const seed = (col * 7 + row);
-                  const filled = seed % 5 === 0 ? 'bg-green-600' : seed % 3 === 0 ? 'bg-green-400' : seed % 2 === 0 ? 'bg-green-200' : 'bg-neutral-200';
-                  return <div key={row} className={`w-3 h-3 rounded-[2px] ${filled}`} />;
-                })}
+        <h2 className="text-lg font-semibold mb-4">Popular repositories</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
+          {(repos || []).slice(0, 6).map((repo: any) => (
+            <a href={repo.html_url} target="_blank" rel="noreferrer" key={repo.name} className="border border-[#EFEFEF] rounded-xl p-5 bg-white flex flex-col gap-3 hover:border-neutral-300 transition-colors">
+              <div className="flex justify-between items-start">
+                <h3 className="text-[#0969DA] font-semibold hover:underline cursor-pointer text-sm">{repo.name}</h3>
+                <span className="text-[10px] border border-neutral-200 px-2 py-0.5 rounded-full text-neutral-500 font-semibold">{repo.is_private ? 'Private' : 'Public'}</span>
               </div>
-            ))}
+              {repo.description && <p className="text-xs text-[#666] line-clamp-2 leading-relaxed">{repo.description}</p>}
+              <div className="flex items-center gap-4 mt-auto pt-2">
+                {repo.language && (
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-blue-500"></span>
+                    <span className="text-[10px] text-neutral-500 font-medium">{repo.language}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-[10px] text-neutral-500 font-medium">
+                  ⭐ {repo.stargazers_count}
+                </div>
+              </div>
+            </a>
+          ))}
+        </div>
+        <div className="border border-[#EFEFEF] rounded-xl p-6 bg-white">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-base font-semibold">{contributions?.total_this_year || 0} contributions in the last year</h2>
+          </div>
+          <div className="w-full h-28 bg-[#F5F5F5] rounded-xl flex items-center justify-center border border-neutral-100 overflow-hidden">
+             <div className="text-zinc-400 text-sm">See full contribution graph on your GitHub profile.</div>
           </div>
         </div>
-        <div className="flex justify-between text-xs text-neutral-500 px-1 mt-2">
-          <span>Learn how we count contributions</span>
-          <div className="flex items-center gap-1.5">
-            <span>Less</span>
-            <div className="flex gap-1"><div className="w-3 h-3 rounded-sm bg-neutral-200"/><div className="w-3 h-3 rounded-sm bg-green-200"/><div className="w-3 h-3 rounded-sm bg-green-400"/><div className="w-3 h-3 rounded-sm bg-green-600"/></div>
-            <span>More</span>
-          </div>
-        </div>
-      </div>
-    </motion.div>
-  );
+      </motion.div>
+    );
+  }
 
   // ─── LEETCODE ───
   if (appInfo.id === 'leetcode') return (

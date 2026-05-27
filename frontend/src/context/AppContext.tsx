@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { AppName } from '../types';
+import { supabase } from '../lib/supabase';
+import { getConnectionStatus } from '../lib/api';
 
 export interface ScheduledPost {
   id: string;
@@ -46,13 +48,14 @@ interface AppContextType {
   addPlannerTask: (task: Omit<PlannerTask, 'id' | 'createdAt'>) => void;
   updatePlannerTask: (id: string, updates: Partial<PlannerTask>) => void;
   deletePlannerTask: (id: string) => void;
+  refreshConnections: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [connectedApps, setConnectedApps] = useState<AppName[]>(['instagram', 'github', 'leetcode']);
+  const [connectedApps, setConnectedApps] = useState<AppName[]>([]);
   const [scheduledPosts, setScheduledPosts] = useState<ScheduledPost[]>([]);
   const [savedDrafts, setSavedDrafts] = useState<DraftPost[]>([]);
   const [plannerTasks, setPlannerTasks] = useState<PlannerTask[]>([
@@ -64,7 +67,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
 
   const login = () => setIsAuthenticated(true);
-  const logout = () => {
+  const logout = async () => {
+    await supabase.auth.signOut();
     setIsAuthenticated(false);
     setConnectedApps([]);
     setScheduledPosts([]);
@@ -107,6 +111,37 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPlannerTasks(prev => prev.filter(t => t.id !== id));
   };
 
+  const refreshConnections = async () => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      if (!sessionData.session) return;
+      const res = await getConnectionStatus();
+      if (res.success && res.data) {
+        setConnectedApps(res.data.connected || []);
+      }
+    } catch (e) {
+      console.error('Failed to refresh connections:', e);
+    }
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+      if (session) refreshConnections();
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAuthenticated(!!session);
+      if (session) {
+        refreshConnections();
+      } else {
+        setConnectedApps([]);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   return (
     <AppContext.Provider value={{
       isAuthenticated, login, logout,
@@ -114,6 +149,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       scheduledPosts, addScheduledPost, deleteScheduledPost,
       savedDrafts, saveDraft, deleteDraft,
       plannerTasks, addPlannerTask, updatePlannerTask, deletePlannerTask,
+      refreshConnections,
     }}>
       {children}
     </AppContext.Provider>
