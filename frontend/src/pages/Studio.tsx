@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { UploadCloud, Sparkles, Calendar, Clock, CheckCircle2, Trash2, Save } from 'lucide-react';
+import { UploadCloud, Sparkles, Calendar, Clock, CheckCircle2, Trash2, Save, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS } from '../data/mockData';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -108,8 +108,17 @@ export default function Studio() {
             {uploadedFiles.length > 0 && (
                 <div className="mt-4 w-full flex gap-2 flex-wrap justify-center">
                   {uploadedFiles.map((f, i) => (
-                    <div key={i} className="text-[10px] bg-white border border-neutral-200 px-2 py-1 rounded-full text-neutral-600 truncate max-w-[120px]">
-                      {f.name}
+                    <div key={i} className="flex items-center gap-1 text-[10px] bg-white border border-neutral-200 pl-2 pr-1 py-1 rounded-full text-neutral-600 max-w-[140px]">
+                      <span className="truncate min-w-0 flex-1">{f.name}</span>
+                      <button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setUploadedFiles(prev => prev.filter((_, index) => index !== i));
+                        }}
+                        className="p-0.5 hover:bg-neutral-100 rounded-full text-neutral-400 hover:text-red-500 transition-colors flex-shrink-0"
+                      >
+                        <X className="w-3 h-3" />
+                      </button>
                     </div>
                   ))}
                 </div>

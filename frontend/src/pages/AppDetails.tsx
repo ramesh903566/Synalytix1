@@ -50,19 +50,38 @@ export default function AppDetails() {
   }, [isConnectionCallback, location.pathname, navigate, refreshConnections]);
 
   useEffect(() => {
-    if (appInfo?.id === 'github' && isConnected) {
-      setGithubLoading(true);
+    if (appInfo?.id !== 'github' || !isConnected) return;
+
+    let cancelled = false;
+
+    const loadGitHubData = (silent = false) => {
+      if (!silent) setGithubLoading(true);
+      setGithubError('');
+
       getGitHubData()
         .then(res => {
+          if (cancelled) return;
           if (res.success) {
             setGithubData(res.data);
           } else {
             setGithubError(res.error || 'Failed to fetch GitHub data');
           }
         })
-        .catch(err => setGithubError(err.message))
-        .finally(() => setGithubLoading(false));
-    }
+        .catch(err => {
+          if (!cancelled) setGithubError(err.message);
+        })
+        .finally(() => {
+          if (!cancelled && !silent) setGithubLoading(false);
+        });
+    };
+
+    loadGitHubData();
+    const interval = window.setInterval(() => loadGitHubData(true), 60_000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [appInfo?.id, isConnected]);
 
   const accounts = id ? (MOCK_ACCOUNTS[id as string] || []) : [];
@@ -106,7 +125,8 @@ export default function AppDetails() {
     if (githubError) return <div className="p-8 text-center text-red-500 mt-20">{githubError}</div>;
     if (!githubData) return null;
 
-    const { profile, repos, contributions } = githubData;
+    const { profile, repos, contributions, stats } = githubData;
+    const totalStars = stats?.total_stars ?? repos?.reduce((sum: number, repo: any) => sum + (repo.stargazers_count || 0), 0) ?? 0;
 
     return (
       <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto">
@@ -124,7 +144,7 @@ export default function AppDetails() {
           <div className="ml-auto flex gap-3">
             <div className="text-center"><div className="text-2xl font-bold">{profile.public_repos}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Repos</div></div>
             <div className="text-center ml-4"><div className="text-2xl font-bold">{contributions?.total_this_year || 0}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Contributions</div></div>
-            <div className="text-center ml-4"><div className="text-2xl font-bold">{profile.followers}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Followers</div></div>
+            <div className="text-center ml-4"><div className="text-2xl font-bold">{totalStars}</div><div className="text-[10px] text-[#999] uppercase tracking-widest font-medium">Stars</div></div>
           </div>
         </div>
         <h2 className="text-lg font-semibold mb-4">Popular repositories</h2>

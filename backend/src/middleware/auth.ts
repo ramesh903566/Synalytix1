@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import jwt from 'jsonwebtoken';
+import { supabase } from '../lib/supabase';
 
 /**
  * Authentication Middleware
@@ -14,20 +14,23 @@ import jwt from 'jsonwebtoken';
  *     headers: { Authorization: `Bearer ${supabase.auth.session()?.access_token}` }
  *   })
  */
-export function authenticate(req: Request, res: Response, next: NextFunction): void {
-  // 1. Get the Authorization header or query string token
-  let token = '';
-
+function getBearerToken(req: Request): string {
   const authHeader = req.headers.authorization;
   if (authHeader && authHeader.startsWith('Bearer ')) {
-    token = authHeader.split(' ')[1];
-  } else if (req.query.token && typeof req.query.token === 'string') {
-    // Fallback for browser redirects where headers can't be set
-    token = req.query.token;
+    return authHeader.slice('Bearer '.length).trim();
   }
 
+  if (req.query.token && typeof req.query.token === 'string') {
+    return req.query.token;
+  }
+
+  return '';
+}
+
+export async function authenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const token = getBearerToken(req);
+
   if (!token) {
-    console.error('[Auth] No token found in request. Headers:', req.headers.authorization ? 'present' : 'missing', 'Query:', req.query.token ? 'present' : 'missing');
     res.status(401).json({
       success: false,
       error: 'Missing or invalid Authorization token.',
@@ -35,50 +38,9 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
     return;
   }
 
-  console.log('[Auth] Token received, first 20 chars:', token.substring(0, 20), '... length:', token.length);
-
-  // 3. Verify the JWT using Supabase's JWT secret
-  // This confirms the token was issued by YOUR Supabase project
   try {
-    const secret = process.env.JWT_SECRET!;
-    let decoded: jwt.JwtPayload | null = null;
-
-    // Try verifying with the raw string first (Supabase default)
-    try {
-      decoded = jwt.verify(token, secret, { algorithms: ['HS256'] }) as jwt.JwtPayload;
-    } catch {
-      // If raw string fails, try base64-decoded buffer
-      try {
-        const secretBuffer = Buffer.from(secret, 'base64');
-        decoded = jwt.verify(token, secretBuffer, { algorithms: ['HS256'] }) as jwt.JwtPayload;
-      } catch (e2: any) {
-        console.error('[Auth] JWT verification failed with both methods:', e2.message);
-        // Log token header for debugging (safe — no secret data)
-        const parts = token.split('.');
-        if (parts.length === 3) {
-          const header = JSON.parse(Buffer.from(parts[0], 'base64url').toString());
-          console.error('[Auth] Token header:', header);
-          console.error('[Auth] JWT_SECRET length:', secret.length);
-        }
-        throw e2;
-      }
-    }
-
-    // 4. Attach user ID to request — all route handlers use this
-    req.userId = decoded.sub; // Supabase puts user UUID in 'sub' claim
-    req.userEmail = decoded.email;
-
-    next();
-  } catch (error) {
-    if (error instanceof jwt.TokenExpiredError) {
-      res.status(401).json({
-        success: false,
-        error: 'Token expired. Please sign in again.',
-      });
-      return;
-    }
-
-    if (error instanceof jwt.JsonWebTokenError) {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data.user) {
       res.status(401).json({
         success: false,
         error: 'Invalid token. Please sign in again.',
@@ -86,6 +48,11 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
       return;
     }
 
+    req.userId = data.user.id;
+    req.userEmail = data.user.email;
+
+    next();
+  } catch {
     res.status(500).json({ success: false, error: 'Authentication failed' });
   }
 }
@@ -95,20 +62,16 @@ export function authenticate(req: Request, res: Response, next: NextFunction): v
  * but attaches userId if token is valid. Useful for public endpoints
  * that behave differently for logged-in users.
  */
-export function optionalAuthenticate(req: Request, res: Response, next: NextFunction): void {
-  const authHeader = req.headers.authorization;
-
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+export async function optionalAuthenticate(req: Request, res: Response, next: NextFunction): Promise<void> {
+  const token = getBearerToken(req);
+  if (!token) {
     return next();
   }
 
-  const token = authHeader.split(' ')[1];
-
   try {
-    const jwtSecret = Buffer.from(process.env.JWT_SECRET!, 'base64');
-    const decoded = jwt.verify(token, jwtSecret, { algorithms: ['HS256'] }) as jwt.JwtPayload;
-    req.userId = decoded.sub;
-    req.userEmail = decoded.email;
+    const { data } = await supabase.auth.getUser(token);
+    req.userId = data.user?.id;
+    req.userEmail = data.user?.email;
   } catch {
     // Token invalid — just continue without userId
   }

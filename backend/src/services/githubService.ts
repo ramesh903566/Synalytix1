@@ -70,6 +70,26 @@ export const GitHubService = {
   },
 
   /**
+   * Get every repository visible to the authenticated user.
+   * Used for live aggregate stats such as total stars.
+   */
+  async getAllRepos(accessToken: string): Promise<GitHubRepo[]> {
+    const repos: GitHubRepo[] = [];
+    let page = 1;
+    const perPage = 100;
+
+    while (true) {
+      const pageRepos = await this.getRepos(accessToken, page, perPage);
+      repos.push(...pageRepos);
+
+      if (pageRepos.length < perPage) break;
+      page += 1;
+    }
+
+    return repos;
+  },
+
+  /**
    * Get contribution stats — counts commits from the events API.
    * GitHub doesn't expose the contribution graph via API directly,
    * so we approximate it from recent events.

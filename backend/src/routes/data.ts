@@ -140,15 +140,18 @@ router.get('/github/all', authenticate, async (req: Request, res: Response) => {
       getCached(`github_profile_${req.userId}`, 30, () =>
         GitHubService.getProfile(conn.decrypted_access_token)
       ),
-      getCached(`github_repos_${req.userId}_p1`, 30, () =>
-        GitHubService.getRepos(conn.decrypted_access_token)
-      ),
+      GitHubService.getAllRepos(conn.decrypted_access_token),
       getCached(`github_contributions_${req.userId}`, 60, () =>
         GitHubService.getContributions(conn.decrypted_access_token, conn.platform_username)
       ),
     ]);
 
-    res.json({ success: true, data: { profile, repos, contributions } });
+    const stats = {
+      total_stars: repos.reduce((sum, repo) => sum + repo.stargazers_count, 0),
+      fetched_at: new Date().toISOString(),
+    };
+
+    res.json({ success: true, data: { profile, repos, contributions, stats } });
   } catch (err: any) {
     res.status(500).json({ success: false, error: err.message });
   }
