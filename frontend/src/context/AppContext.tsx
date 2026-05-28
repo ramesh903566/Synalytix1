@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { AppName } from '../types';
 import { supabase } from '../lib/supabase';
 import { getConnectionStatus } from '../lib/api';
@@ -113,7 +113,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setPlannerTasks(prev => prev.filter(t => t.id !== id));
   };
 
-  const refreshConnections = async () => {
+  const refreshConnections = useCallback(async () => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       if (!sessionData.session) return;
@@ -124,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     } catch (e) {
       console.error('Failed to refresh connections:', e);
     }
-  };
+  }, []);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {

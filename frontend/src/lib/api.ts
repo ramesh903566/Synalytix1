@@ -16,15 +16,17 @@ export async function getAuthHeader(): Promise<Record<string, string>> {
 
 // Connect a platform — redirects browser to platform OAuth page
 export async function connectPlatform(platform: string) {
-  const { data } = await supabase.auth.getSession();
-  const token = data.session?.access_token;
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/auth/connect/${platform}?format=json`, {
+    headers,
+  });
 
-  if (!token) {
-    throw new Error('Not authenticated - Cannot connect platform');
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.success || !body.data?.url) {
+    throw new Error(body?.error || 'Failed to start platform authorization');
   }
 
-  // We navigate to the backend URL directly, passing the token as a query param
-  window.location.href = `${BACKEND}/api/auth/connect/${platform}?token=${token}`;
+  window.location.href = body.data.url;
 }
 
 // Get connection status

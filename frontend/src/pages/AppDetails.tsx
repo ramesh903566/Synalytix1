@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS, MOCK_ACCOUNTS, IG_OVERVIEW, IG_AUDIENCE, IG_CONTENT_POSTS } from '../data/mockData';
@@ -19,20 +19,35 @@ const SORT_KEYS: Record<ContentSort, keyof typeof IG_CONTENT_POSTS[0]> = {
 export default function AppDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { connectedApps, connectApp } = useAppContext();
+  const location = useLocation();
+  const { connectedApps, refreshConnections } = useAppContext();
 
   const appInfo = MOCK_APPS.find(a => a.id === id);
   const isConnected = connectedApps.includes(id as any);
+  const isConnectionCallback = new URLSearchParams(location.search).get('connected') === 'true';
   const [selectedAccount, setSelectedAccount] = useState<any>(null);
   const [selectedPost, setSelectedPost] = useState<any>(null);
   const [igTab, setIgTab] = useState<InsightsTab>('overview');
   const [contentSort, setContentSort] = useState<ContentSort>('Views');
   const [audienceSegment, setAudienceSegment] = useState<'overall'|'follows'|'unfollows'>('overall');
   const [activeDay, setActiveDay] = useState('Su');
+  const [locationView, setLocationView] = useState<'Countries'|'Towns/cities'>('Countries');
+  const [isRefreshingConnection, setIsRefreshingConnection] = useState(isConnectionCallback);
 
   const [githubData, setGithubData] = useState<any>(null);
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState('');
+
+  useEffect(() => {
+    if (!isConnectionCallback) return;
+
+    setIsRefreshingConnection(true);
+    refreshConnections()
+      .finally(() => {
+        setIsRefreshingConnection(false);
+        navigate(location.pathname, { replace: true });
+      });
+  }, [isConnectionCallback, location.pathname, navigate, refreshConnections]);
 
   useEffect(() => {
     if (appInfo?.id === 'github' && isConnected) {
@@ -59,6 +74,10 @@ export default function AppDetails() {
   }, [isConnected, accounts, selectedAccount]);
 
   if (!appInfo) return <div className="p-8 text-sm text-[#666]">App not found.</div>;
+
+  if (!isConnected && isRefreshingConnection) {
+    return <div className="p-8 text-center text-zinc-500 mt-20">Finishing connection...</div>;
+  }
 
   if (!isConnected) {
     return (

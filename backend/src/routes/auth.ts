@@ -12,6 +12,10 @@ const router = Router();
 const BACKEND_URL = process.env.BACKEND_URL!;
 const FRONTEND_URL = process.env.FRONTEND_URL!;
 
+function wantsJson(req: Request) {
+  return req.get('accept')?.includes('application/json') || req.query.format === 'json';
+}
+
 // ─── Helper: redirect to frontend with error ──────────────────────────────────
 function redirectWithError(res: Response, platform: string, message: string) {
   const url = new URL(`${FRONTEND_URL}/app/apps`);
@@ -106,6 +110,11 @@ router.get('/connect/:platform', authenticate, async (req: Request, res: Respons
         state: stateToken,
       });
       authUrl = `https://www.linkedin.com/oauth/v2/authorization?${params}`;
+    }
+
+    if (wantsJson(req)) {
+      res.json({ success: true, data: { url: authUrl } });
+      return;
     }
 
     res.redirect(authUrl);

@@ -23,10 +23,15 @@ export default function Auth() {
 
     try {
       if (isSignUp) {
-        const { error: signUpError } = await supabase.auth.signUp({ email, password });
+        const { data, error: signUpError } = await supabase.auth.signUp({ email, password });
         if (signUpError) throw signUpError;
-        setMsg('Account created successfully! You can now log in.');
-        setIsSignUp(false);
+        
+        if (data.session) {
+          navigate('/app');
+        } else {
+          setMsg('Account created successfully! Please check your email to verify your account.');
+          setIsSignUp(false);
+        }
       } else {
         const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
         if (signInError) throw signInError;

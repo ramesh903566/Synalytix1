@@ -1,8 +1,8 @@
 import cron from 'node-cron';
 import { supabase, decrypt } from '../lib/supabase';
-import { ConnectionService } from '../services/connectionService';
-import { InstagramService } from '../services/instagramService';
-import { XService } from '../services/platformServices';
+import { ConnectionService } from './connectionService';
+import { InstagramService } from './instagramService';
+import { XService } from './platformServices';
 
 /**
  * Token Refresh Scheduler
