@@ -96,3 +96,49 @@ export async function connectLeetCode(username: string) {
   if (!res.ok) throw new Error('Failed to connect LeetCode');
   return res.json();
 }
+
+// ═══════════════════════════════════════════════════════════════════════════
+//  AI RECOMMENDATIONS
+// ═══════════════════════════════════════════════════════════════════════════
+
+export async function generateRecommendations(options?: {
+  forceRefresh?: boolean;
+  focusCategory?: string;
+}) {
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/recommendations/generate`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify(options || {}),
+  });
+  const body = await res.json();
+  if (!res.ok) throw new Error(body?.error?.message || 'Failed to generate recommendations');
+  return body;
+}
+
+export async function getRecommendationHistory() {
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/recommendations/history`, { headers });
+  if (!res.ok) throw new Error('Failed to get recommendation history');
+  return res.json();
+}
+
+export async function completeRecommendation(id: string) {
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/recommendations/${id}/complete`, {
+    method: 'PATCH',
+    headers,
+  });
+  if (!res.ok) throw new Error('Failed to complete recommendation');
+  return res.json();
+}
+
+export async function dismissRecommendation(id: string) {
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/recommendations/${id}/dismiss`, {
+    method: 'PATCH',
+    headers,
+  });
+  if (!res.ok) throw new Error('Failed to dismiss recommendation');
+  return res.json();
+}

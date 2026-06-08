@@ -13,6 +13,18 @@ export default function AppLayout() {
   const [showNotifications, setShowNotifications] = useState(false);
   const notifRef = useRef<HTMLDivElement>(null);
 
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: 'Post Published', app: 'X (Twitter)', time: '5m ago', read: false },
+    { id: 2, title: 'Insight Generated', app: 'Instagram', time: '12m ago', read: false },
+    { id: 3, title: 'Draft Saved', app: 'LinkedIn', time: '1h ago', read: true },
+  ]);
+
+  const unreadCount = notifications.filter(n => !n.read).length;
+
+  const markAllRead = () => {
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
+  };
+
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (notifRef.current && !notifRef.current.contains(event.target as Node)) {
@@ -103,7 +115,9 @@ export default function AppLayout() {
             <div className="relative flex items-center" ref={notifRef}>
               <button onClick={() => setShowNotifications(!showNotifications)} className="relative w-8 h-8 rounded-full hover:bg-neutral-100 flex items-center justify-center transition-colors">
                 <Bell className="w-4 h-4 text-[#1A1A1A]" />
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                {unreadCount > 0 && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full border-2 border-white"></span>
+                )}
               </button>
 
               <AnimatePresence>
@@ -116,29 +130,34 @@ export default function AppLayout() {
                   >
                     <div className="p-4 border-b border-[#F5F5F5] flex justify-between items-center">
                       <h3 className="font-semibold text-sm">Recent Activities</h3>
-                      <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-full font-bold">2 NEW</span>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-red-50 text-red-600 px-2 py-1 rounded-full font-bold">{unreadCount} NEW</span>
+                      )}
                     </div>
                     <div className="max-h-[300px] overflow-y-auto">
-                      {[
-                        { title: 'Post Published', app: 'X (Twitter)', time: '5m ago' },
-                        { title: 'Insight Generated', app: 'Instagram', time: '12m ago' },
-                        { title: 'Draft Saved', app: 'LinkedIn', time: '1h ago' }
-                      ].map((notif, i) => (
-                        <div key={i} className="p-4 border-b border-[#F5F5F5] last:border-0 hover:bg-neutral-50 transition-colors flex gap-3">
-                          <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0">
+                      {notifications.map((notif) => (
+                        <div key={notif.id} className={`p-4 border-b border-[#F5F5F5] last:border-0 hover:bg-neutral-50 transition-colors flex gap-3 ${!notif.read ? 'bg-blue-50/40' : ''}`}>
+                          <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center flex-shrink-0 relative">
                             <Activity className="w-4 h-4 text-neutral-500" />
+                            {!notif.read && (
+                              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-red-500 rounded-full border border-white" />
+                            )}
                           </div>
                           <div>
-                            <p className="text-xs font-semibold text-[#1A1A1A]">{notif.title}</p>
+                            <p className={`text-xs text-[#1A1A1A] ${!notif.read ? 'font-semibold' : 'font-medium'}`}>{notif.title}</p>
                             <p className="text-[10px] text-[#666] mt-0.5">{notif.app}</p>
                           </div>
                           <span className="ml-auto text-[9px] text-[#999] whitespace-nowrap">{notif.time}</span>
                         </div>
                       ))}
                     </div>
-                    <div className="p-3 border-t border-[#F5F5F5] bg-neutral-50 text-center cursor-pointer hover:bg-neutral-100">
+                    <button
+                      onClick={markAllRead}
+                      disabled={unreadCount === 0}
+                      className="w-full p-3 border-t border-[#F5F5F5] bg-neutral-50 text-center hover:bg-neutral-100 transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
                       <span className="text-[10px] font-bold text-black uppercase tracking-widest">Mark all as read</span>
-                    </div>
+                    </button>
                   </motion.div>
                 )}
               </AnimatePresence>

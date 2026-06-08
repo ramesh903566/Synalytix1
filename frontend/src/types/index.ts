@@ -1,4 +1,4 @@
-export type AppName = 'instagram' | 'x' | 'linkedin' | 'github' | 'leetcode';
+export type AppName = 'instagram' | 'x' | 'linkedin' | 'github' | 'leetcode' | 'tiktok' | 'facebook';
 
 export interface AppConnection {
   id: AppName;

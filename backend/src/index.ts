@@ -6,6 +6,7 @@ import rateLimit from 'express-rate-limit';
 
 import authRoutes from './routes/auth';
 import dataRoutes from './routes/data';
+import recommendationsRoutes from './routes/recommendations';
 import { errorHandler, requestLogger, notFoundHandler } from './middleware/errorHandler';
 import { startTokenRefreshScheduler } from './services/tokenRefresh';
 
@@ -65,6 +66,7 @@ app.get('/health', (req, res) => {
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/data', dataRoutes);
+app.use('/api/recommendations', recommendationsRoutes);
 
 // ─── 404 + Error Handling ─────────────────────────────────────────────────────
 app.use(notFoundHandler);
@@ -94,6 +96,10 @@ app.listen(PORT, () => {
   console.log('  GET  /api/data/linkedin/all');
   console.log('  GET  /api/data/leetcode/all');
   console.log('  POST /api/data/leetcode/connect');
+  console.log('  POST /api/recommendations/generate');
+  console.log('  GET  /api/recommendations/history');
+  console.log('  PATCH /api/recommendations/:id/complete');
+  console.log('  PATCH /api/recommendations/:id/dismiss');
   console.log('');
 
   // Start the token refresh background job
