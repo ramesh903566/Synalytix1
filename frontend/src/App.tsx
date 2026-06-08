@@ -11,6 +11,7 @@ import AppDetails from './pages/AppDetails';
 import Analytics from './pages/Analytics';
 import Settings from './pages/Settings';
 import Planner from './pages/Planner';
+import Recommendations from './pages/Recommendations';
 import AppLayout from './layouts/AppLayout';
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
@@ -40,6 +41,7 @@ function AppRoutes() {
         <Route path="apps/:id" element={<AppDetails />} />
         <Route path="apps/:id/connect" element={<AppDetails />} />
         <Route path="analytics" element={<Analytics />} />
+        <Route path="recommendations" element={<Recommendations />} />
         <Route path="planner" element={<Planner />} />
         <Route path="settings" element={<Settings />} />
       </Route>

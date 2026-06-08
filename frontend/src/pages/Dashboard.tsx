@@ -220,7 +220,10 @@ export default function Dashboard() {
                 <div key={post.id} className="p-5 hover:bg-neutral-50 transition-colors group cursor-pointer">
                   <div className="flex justify-between items-start mb-2">
                     <div className="text-sm font-medium text-[#1A1A1A] group-hover:text-black line-clamp-1 flex-1 pr-4">{post.content}</div>
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase bg-neutral-50 px-2 py-1 rounded">{post.app?.toUpperCase()}</span>
+                    <span className="text-[10px] font-bold text-neutral-400 uppercase bg-neutral-50 px-2 py-1 rounded flex items-center gap-1.5">
+                      <img src={MOCK_APPS.find(a => a.id === post.app)?.iconUrl} alt={post.app} className="w-3 h-3 object-cover rounded-full" />
+                      {post.app?.toUpperCase()}
+                    </span>
                   </div>
                   <div className="flex gap-5 text-xs text-[#666] font-light">
                     {post.views ? <span className="flex items-center gap-1.5"><Eye className="w-3 h-3" /> {post.views >= 1000 ? `${(post.views/1000).toFixed(1)}K` : post.views} views</span> : null}
@@ -241,12 +244,18 @@ export default function Dashboard() {
             {connectedApps.length === 0 ? (
               <div className="text-xs text-[#666] text-center py-8">No apps connected.</div>
             ) : (
-              connectedApps.map(app => (
-                <div key={app} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100 bg-neutral-50 text-xs">
-                  <span className="font-semibold uppercase tracking-wider text-[#1A1A1A]">{app}</span>
-                  <span className="text-green-700 bg-green-100/50 px-2.5 py-1 rounded border border-green-200/50 font-bold uppercase text-[9px]">Active</span>
-                </div>
-              ))
+              connectedApps.map(app => {
+                const appInfo = MOCK_APPS.find(a => a.id === app);
+                return (
+                  <div key={app} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100 bg-neutral-50 text-xs">
+                    <div className="flex items-center gap-2">
+                      <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-4 h-4 object-cover rounded-full" />
+                      <span className="font-semibold uppercase tracking-wider text-[#1A1A1A]">{appInfo?.name}</span>
+                    </div>
+                    <span className="text-green-700 bg-green-100/50 px-2.5 py-1 rounded border border-green-200/50 font-bold uppercase text-[9px]">Active</span>
+                  </div>
+                );
+              })
             )}
             <button onClick={() => window.location.href = '/app/apps'} className="w-full py-3 mt-2 text-[10px] font-bold text-neutral-400 hover:text-black border border-neutral-200 rounded-lg transition-all">
               MANAGE CONNECTIONS

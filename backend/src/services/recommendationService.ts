@@ -1,4 +1,4 @@
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../lib/supabase';
 import { Recommendation, CareerScore } from '../../types/recommendations';
 import { v4 as uuidv4 } from 'uuid';
 

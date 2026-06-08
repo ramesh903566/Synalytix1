@@ -1,11 +1,11 @@
 export const MOCK_APPS = [
-  { id: 'instagram', name: 'Instagram', color: 'text-pink-600' },
-  { id: 'x', name: 'X (Twitter)', color: 'text-black' },
-  { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600' },
-  { id: 'github', name: 'GitHub', color: 'text-gray-800' },
-  { id: 'leetcode', name: 'LeetCode', color: 'text-yellow-600' },
-  { id: 'tiktok', name: 'TikTok', color: 'text-black' },
-  { id: 'facebook', name: 'Facebook', color: 'text-blue-800' }
+  { id: 'instagram', name: 'Instagram', color: 'text-pink-600', iconUrl: '/icons/instagram.jpeg' },
+  { id: 'x', name: 'X (Twitter)', color: 'text-black', iconUrl: '/icons/x.jpeg' },
+  { id: 'linkedin', name: 'LinkedIn', color: 'text-blue-600', iconUrl: '/icons/linkedin.jpeg' },
+  { id: 'github', name: 'GitHub', color: 'text-gray-800', iconUrl: '/icons/github.png' },
+  { id: 'leetcode', name: 'LeetCode', color: 'text-yellow-600', iconUrl: '/icons/leetcode.png' },
+  { id: 'tiktok', name: 'TikTok', color: 'text-black', iconUrl: '/icons/tiktok.jpeg' },
+  { id: 'facebook', name: 'Facebook', color: 'text-blue-800', iconUrl: '/icons/facebook.jpeg' }
 ] as const;
 
 export const MOCK_ACCOUNTS: Record<string, any[]> = {

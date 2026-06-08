@@ -158,7 +158,10 @@ export default function Studio() {
                           : 'bg-white text-[#666] border-[#EFEFEF] hover:border-neutral-300'
                       }`}
                     >
-                      {appInfo?.name}
+                      <div className="flex items-center gap-2">
+                        <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-4 h-4 object-cover rounded-full" />
+                        <span>{appInfo?.name}</span>
+                      </div>
                     </button>
                   );
                 })}
@@ -203,7 +206,10 @@ export default function Studio() {
                       if (!optimizedDrafts[appId]) return null;
                       return (
                          <div key={appId} className="p-4 bg-neutral-50 border border-neutral-100 rounded-xl relative group">
-                           <div className="font-semibold text-[10px] uppercase tracking-widest text-[#999] mb-2">{MOCK_APPS.find(a=>a.id===appId)?.name}</div>
+                           <div className="flex items-center gap-2 mb-2">
+                             <img src={MOCK_APPS.find(a=>a.id===appId)?.iconUrl} alt="icon" className="w-4 h-4 object-cover rounded-full" />
+                             <div className="font-semibold text-[10px] uppercase tracking-widest text-[#999]">{MOCK_APPS.find(a=>a.id===appId)?.name}</div>
+                           </div>
                            <p className="text-[11px] text-[#666] leading-relaxed whitespace-pre-wrap">{optimizedDrafts[appId]}</p>
                          </div>
                       );
@@ -305,7 +311,8 @@ export default function Studio() {
                   {post.apps.map(app => {
                     const appInfo = MOCK_APPS.find(a => a.id === app);
                     return (
-                      <span key={app} className={`px-2 py-0.5 rounded text-[9px] font-bold text-white ${appInfo?.color || 'bg-black'}`}>
+                      <span key={app} className={`px-2 py-0.5 rounded text-[9px] font-bold text-white bg-neutral-800 flex items-center gap-1.5 border border-neutral-700`}>
+                        <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-3 h-3 object-cover rounded-full" />
                         {appInfo?.name}
                       </span>
                     )
@@ -343,7 +350,8 @@ export default function Studio() {
                   {draft.apps.map(app => {
                     const appInfo = MOCK_APPS.find(a => a.id === app);
                     return (
-                      <span key={app} className={`px-2 py-0.5 rounded text-[9px] font-bold text-white ${appInfo?.color || 'bg-black'}`}>
+                      <span key={app} className={`px-2 py-0.5 rounded text-[9px] font-bold text-white bg-neutral-800 flex items-center gap-1.5 border border-neutral-700`}>
+                        <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-3 h-3 object-cover rounded-full" />
                         {appInfo?.name}
                       </span>
                     )

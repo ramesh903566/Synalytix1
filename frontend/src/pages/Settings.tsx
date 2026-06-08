@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CheckCircle2 } from 'lucide-react';
 import { MOCK_APPS } from '../data/mockData';
@@ -10,6 +10,16 @@ export default function Settings() {
   const [saved, setSaved] = useState(false);
   const [profile, setProfile] = useState({ name: 'Ramesh Kumar', email: 'ramesh@synalytix.ai', bio: 'Developer & creator building Synalytix 🚀', handle: '@ramesh988025' });
   const [prefs, setPrefs] = useState({ format: 'PNG', tone: 'Casual', aiAggressiveness: 'Medium', theme: 'Light', notifications: true, weeklyDigest: true });
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setProfilePhoto(url);
+    }
+  };
 
   const handleSave = () => {
     setSaved(true);
@@ -53,9 +63,27 @@ export default function Settings() {
               <div className="space-y-6">
                 <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Account Details</h2>
                 <div className="flex items-center gap-5 mb-8">
-                  <div className="w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center text-white font-bold text-xl">RK</div>
+                  <div className="w-16 h-16 rounded-full bg-neutral-900 flex items-center justify-center text-white font-bold text-xl overflow-hidden">
+                    {profilePhoto ? (
+                      <img src={profilePhoto} alt="Profile" className="w-full h-full object-cover" />
+                    ) : (
+                      "RK"
+                    )}
+                  </div>
                   <div>
-                    <button className="text-xs font-bold border border-neutral-200 px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors">Change photo</button>
+                    <input 
+                      type="file" 
+                      ref={fileInputRef} 
+                      className="hidden" 
+                      accept="image/png, image/jpeg, image/jpg, image/webp"
+                      onChange={handlePhotoUpload}
+                    />
+                    <button 
+                      onClick={() => fileInputRef.current?.click()}
+                      className="text-xs font-bold border border-neutral-200 px-3 py-1.5 rounded-lg hover:bg-neutral-50 transition-colors"
+                    >
+                      Change photo
+                    </button>
                     <p className="text-[10px] text-[#999] mt-1">JPG, PNG up to 2MB</p>
                   </div>
                 </div>
@@ -135,8 +163,8 @@ export default function Settings() {
                   return (
                     <div key={app.id} className="flex items-center justify-between p-4 rounded-xl border border-[#EFEFEF] bg-[#FBFBFB]">
                       <div className="flex items-center gap-3">
-                        <div className={`w-9 h-9 rounded-lg bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm ${app.color}`}>
-                          {app.name.charAt(0)}
+                        <div className={`w-9 h-9 rounded-lg bg-white border border-[#EFEFEF] flex items-center justify-center font-bold text-sm overflow-hidden`}>
+                          <img src={app.iconUrl} alt={app.name} className="w-full h-full object-cover scale-[1.15]" />
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-[#1A1A1A]">{app.name}</div>

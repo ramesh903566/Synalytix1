@@ -1,5 +1,5 @@
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '../../lib/supabase';
+import { supabase } from '../supabase';
 import { getAIProvider } from '../../lib/ai/provider';
 import { buildUserProfile } from './profile-builder';
 import { buildSystemPrompt, buildUserPrompt } from './prompt-builder';

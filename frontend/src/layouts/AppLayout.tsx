@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { LayoutDashboard, Wand2, Grid3X3, Settings, BarChart3, Plus, Bell, Activity, CalendarCheck } from 'lucide-react';
+import { LayoutDashboard, Wand2, Grid3X3, Settings, BarChart3, Plus, Bell, Activity, CalendarCheck, Sparkles } from 'lucide-react';
 import { NavLink, Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS } from '../data/mockData';
@@ -40,6 +40,7 @@ export default function AppLayout() {
     { name: 'Studio', path: '/app/studio', icon: Wand2 },
     { name: 'Apps', path: '/app/apps', icon: Grid3X3 },
     { name: 'Analytics', path: '/app/analytics', icon: BarChart3 },
+    { name: 'AI Recs', path: '/app/recommendations', icon: Sparkles },
     { name: 'Planner', path: '/app/planner', icon: CalendarCheck },
     { name: 'Settings', path: '/app/settings', icon: Settings },
   ];
@@ -100,8 +101,8 @@ export default function AppLayout() {
                 return (
                   <div key={appId} onClick={() => navigate(`/app/apps/${appId}`)} className={cn("flex flex-col items-center gap-1 cursor-pointer", isActive ? "opacity-100" : "opacity-40 hover:opacity-100 transition-opacity")}>
                     <div className={cn("w-12 h-12 rounded-full border-2 p-[2px]", isActive ? "border-black" : "border-transparent")}>
-                      <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px]", isActive ? "bg-black text-white" : "bg-neutral-200 text-[#1A1A1A]")}>
-                        {appInfo.name.substring(0, 2).toUpperCase()}
+                      <div className={cn("w-full h-full rounded-full flex items-center justify-center font-bold text-[10px] overflow-hidden")}>
+                        <img src={appInfo.iconUrl} alt={appInfo.name} className="w-full h-full object-cover scale-[1.15]" />
                       </div>
                     </div>
                     <span className="text-[9px] font-semibold uppercase text-[#1A1A1A]">{appInfo.name}</span>
@@ -163,7 +164,7 @@ export default function AppLayout() {
               </AnimatePresence>
             </div>
 
-            <div className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center border border-neutral-200 cursor-pointer hover:bg-neutral-200 transition-colors">
+            <div onClick={() => navigate('/app/settings')} className="w-8 h-8 rounded-full bg-neutral-100 flex items-center justify-center border border-neutral-200 cursor-pointer hover:bg-neutral-200 transition-colors">
               <span className="text-[10px] font-bold text-[#1A1A1A]">AJ</span>
             </div>
           </div>

@@ -101,8 +101,8 @@ export default function AppDetails() {
   if (!isConnected) {
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto text-center mt-20">
-        <div className={`w-20 h-20 mx-auto rounded-3xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm font-semibold text-3xl mb-8 ${appInfo.color}`}>
-          {appInfo.name.charAt(0)}
+        <div className={`w-20 h-20 mx-auto rounded-3xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm overflow-hidden mb-8`}>
+          <img src={appInfo.iconUrl} alt={appInfo.name} className="w-full h-full object-cover scale-[1.15]" />
         </div>
         <h1 className="text-3xl font-semibold tracking-tight mb-4">Connect {appInfo.name}</h1>
         <p className="text-zinc-500 font-light mb-10 leading-relaxed max-w-lg mx-auto">
@@ -577,8 +577,8 @@ export default function AppDetails() {
       </button>
       <div className="flex justify-between items-start mb-10">
         <div className="flex items-center gap-4">
-          <div className={`w-16 h-16 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm font-bold text-2xl ${appInfo.color}`}>
-            {appInfo.name.charAt(0)}
+          <div className={`w-16 h-16 rounded-2xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm overflow-hidden`}>
+            <img src={appInfo.iconUrl} alt={appInfo.name} className="w-full h-full object-cover scale-[1.15]" />
           </div>
           <div>
             <h1 className="text-3xl font-semibold tracking-tight">{appInfo.name} Workspace</h1>

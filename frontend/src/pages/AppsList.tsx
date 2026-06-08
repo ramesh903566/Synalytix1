@@ -6,14 +6,14 @@ import { useNavigate } from 'react-router-dom';
 import { Check, Plus } from 'lucide-react';
 import { getConnectionStatus } from '../lib/api';
 
-const APP_META: Record<string, { icon: React.ReactNode, desc: string, metrics?: string }> = {
-  instagram: { icon: <img src="/icons/instagram.jpeg" alt="Instagram" className="w-full h-full object-cover scale-[1.15]" />, desc: 'View detailed reel performance, story views, profile visits and audience demographics.', metrics: '53.6K Views · 488 Followers' },
-  x: { icon: <img src="/icons/x.jpeg" alt="X" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Track tweet impressions, profile clicks, engagement rates and follower trends over time.', metrics: '12K Impressions · +24 Follows' },
-  linkedin: { icon: <img src="/icons/linkedin.jpeg" alt="LinkedIn" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Track post impressions, profile views, connection growth and professional engagement.', metrics: 'Connect to sync analytics' },
-  github: { icon: <img src="/icons/github.png" alt="GitHub" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Monitor contributions, repository stars, followers and coding activity heatmap.', metrics: '89 Contributions · 6 Repos' },
-  leetcode: { icon: <img src="/icons/leetcode.png" alt="LeetCode" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Track problems solved, acceptance rate, difficulty breakdown and submission history.', metrics: '28 Solved · 94.6% Acceptance' },
-  tiktok: { icon: <img src="/icons/tiktok.jpeg" alt="TikTok" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Track video views, profile interactions, followers growth and trending sounds.', metrics: 'Connect to sync analytics' },
-  facebook: { icon: <img src="/icons/facebook.jpeg" alt="Facebook" className="w-full h-full object-cover scale-[1.15]" />, desc: 'Track page reach, post engagement, audience demographics and ad performance.', metrics: 'Connect to sync analytics' },
+const APP_META: Record<string, { desc: string, metrics?: string }> = {
+  instagram: { desc: 'View detailed reel performance, story views, profile visits and audience demographics.', metrics: '53.6K Views · 488 Followers' },
+  x: { desc: 'Track tweet impressions, profile clicks, engagement rates and follower trends over time.', metrics: '12K Impressions · +24 Follows' },
+  linkedin: { desc: 'Track post impressions, profile views, connection growth and professional engagement.', metrics: 'Connect to sync analytics' },
+  github: { desc: 'Monitor contributions, repository stars, followers and coding activity heatmap.', metrics: '89 Contributions · 6 Repos' },
+  leetcode: { desc: 'Track problems solved, acceptance rate, difficulty breakdown and submission history.', metrics: '28 Solved · 94.6% Acceptance' },
+  tiktok: { desc: 'Track video views, profile interactions, followers growth and trending sounds.', metrics: 'Connect to sync analytics' },
+  facebook: { desc: 'Track page reach, post engagement, audience demographics and ad performance.', metrics: 'Connect to sync analytics' },
 };
 export default function AppsList() {
   const { connectedApps } = useAppContext();
@@ -95,7 +95,7 @@ export default function AppsList() {
               onClick={() => isConnected ? navigate(`/app/apps/${app.id}`) : navigate(`/app/apps/${app.id}/connect`)}>
               <div className="flex justify-between items-start mb-8">
                 <div className="w-11 h-11 rounded-xl bg-white border border-[#EFEFEF] flex items-center justify-center text-xl shadow-sm overflow-hidden">
-                  {meta?.icon || app.name.charAt(0)}
+                  <img src={app.iconUrl} alt={app.name} className="w-full h-full object-cover scale-[1.15]" />
                 </div>
                 {isConnected ? (
                   <span className="flex items-center gap-1.5 px-3 py-1 bg-green-50 text-green-700 rounded text-[9px] font-bold uppercase tracking-widest border border-green-100">
