@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Zap, Clock, ChevronDown, ChevronUp, HelpCircle, Check, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { Recommendation, CATEGORY_LABELS } from '../../types/recommendations';
+import { Recommendation } from '../../types/recommendations';
+import { CATEGORY_LABELS } from '../../lib/constants';
 
 interface RecommendationCardProps {
   rec: Recommendation;

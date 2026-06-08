@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import type { GenerateInput, GenerateOutput } from "../types/recommendations";
-import api from "../lib/api"; // Assuming there's a base axios or fetch client here. If not, I will use fetch. Let me just use fetch for safety.
 
 const API_BASE = "http://localhost:3001/api"; // Or whatever the base is, I should use the common fetch wrapper if it exists
 

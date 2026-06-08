@@ -1,23 +1,15 @@
 import React from 'react';
-import { useRecommendationsContext } from '../../context/RecommendationsContext';
 import { Target, TrendingUp, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-export default function ProgressTracker() {
-  const { recommendations, scores, previousScores } = useRecommendationsContext();
+interface ProgressTrackerProps {
+  completedCount: number;
+  totalCount: number;
+  growthImpact?: number;
+}
 
-  const completedRecs = recommendations.filter(r => r.completedAt);
-  const completedCount = completedRecs.length;
-  const totalCount = recommendations.length;
+export default function ProgressTracker({ completedCount, totalCount, growthImpact = 0 }: ProgressTrackerProps) {
   const progressPercent = totalCount === 0 ? 0 : Math.round((completedCount / totalCount) * 100);
-
-  // Simplified growth impact: current score average - previous score average
-  let growthImpact = 0;
-  if (scores && previousScores) {
-    const currentAvg = (scores.career + scores.employability + scores.branding + scores.technical) / 4;
-    const prevAvg = (previousScores.career + previousScores.employability + previousScores.branding + previousScores.technical) / 4;
-    growthImpact = Math.round(currentAvg - prevAvg);
-  }
 
   return (
     <motion.div 

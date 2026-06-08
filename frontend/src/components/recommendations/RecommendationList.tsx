@@ -1,6 +1,8 @@
 import { AnimatePresence } from 'motion/react';
 import RecommendationCard from './RecommendationCard';
-import { Recommendation, RecommendationsFilters, PRIORITY_ORDER } from '../../types/recommendations';
+import { Recommendation } from '../../types/recommendations';
+import { RecommendationsFilters } from '../../store/recommendationsStore';
+import { PRIORITY_ORDER } from '../../lib/constants';
 
 interface RecommendationListProps {
   recommendations: Recommendation[];

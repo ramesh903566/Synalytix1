@@ -124,13 +124,17 @@ export default function Recommendations() {
                 filters={filters} 
                 onComplete={markComplete} 
                 onDismiss={dismiss} 
-                onExplain={setSelectedRecommendationId} 
+                onExplain={(rec) => setSelectedRecommendationId(rec.id)} 
               />
             </div>
 
             {/* Right Column (Panels) - 40% approx */}
             <div className="xl:col-span-5 space-y-6">
-              <ProgressTracker completedCount={recommendations.filter(r => r.completedAt).length} />
+              <ProgressTracker 
+                completedCount={recommendations.filter(r => r.completedAt).length} 
+                totalCount={recommendations.length}
+                growthImpact={recData?.scoreDelta ? (recData.scoreDelta.career + recData.scoreDelta.employability + recData.scoreDelta.branding + recData.scoreDelta.technical) / 4 : 0}
+              />
               <WeeklyPlanPanel weeklyPlan={recData?.weeklyPlan || []} />
               <CareerGapPanel gaps={recData?.gaps || { skills: [], assets: [], activities: [] }} />
               <MonthlyRoadmapPanel roadmap={recData?.monthlyRoadmap || []} />

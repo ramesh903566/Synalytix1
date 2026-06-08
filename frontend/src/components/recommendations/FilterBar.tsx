@@ -1,11 +1,11 @@
 import { X as XIcon } from 'lucide-react';
+import { CATEGORY_LABELS } from '../../lib/constants';
 import {
-  RecommendationsFilters,
   RecommendationCategory,
   Priority,
   Difficulty,
-  CATEGORY_LABELS,
 } from '../../types/recommendations';
+import { RecommendationsFilters } from '../../store/recommendationsStore';
 
 interface FilterBarProps {
   filters: RecommendationsFilters;
