@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import { MOCK_APPS, MOCK_ACCOUNTS, IG_OVERVIEW, IG_AUDIENCE, IG_CONTENT_POSTS } from '../data/mockData';
-import { connectPlatform, getGitHubData } from '../lib/api';
+import { connectLeetCode, connectPlatform, getGitHubData, getLeetCodeData } from '../lib/api';
 import { ArrowLeft, Plus, Heart, MessageCircle, Send, Bookmark, X, Eye, Activity, Info, ChevronDown, Users } from 'lucide-react';
 import { AreaChart, Area, LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
 
@@ -15,6 +15,8 @@ const SORT_KEYS: Record<ContentSort, keyof typeof IG_CONTENT_POSTS[0]> = {
   'Views': 'views','Accounts reached': 'accountsReached','Follows': 'follows',
   'Likes': 'likes','Comments': 'comments','Reposts': 'reposts','Shares': 'shares','Saves': 'saves',
 };
+const BACKEND_APPS = new Set(['github', 'instagram', 'x', 'linkedin', 'leetcode']);
+const OAUTH_APPS = new Set(['github', 'instagram', 'x', 'linkedin']);
 
 export default function AppDetails() {
   const { id } = useParams<{ id: string }>();
@@ -37,6 +39,12 @@ export default function AppDetails() {
   const [githubData, setGithubData] = useState<any>(null);
   const [githubLoading, setGithubLoading] = useState(false);
   const [githubError, setGithubError] = useState('');
+  const [leetcodeUsername, setLeetcodeUsername] = useState('');
+  const [isConnecting, setIsConnecting] = useState(false);
+  const [connectionError, setConnectionError] = useState('');
+  const [leetcodeData, setLeetcodeData] = useState<any>(null);
+  const [leetcodeLoading, setLeetcodeLoading] = useState(false);
+  const [leetcodeError, setLeetcodeError] = useState('');
 
   useEffect(() => {
     if (!isConnectionCallback) return;
@@ -61,11 +69,7 @@ export default function AppDetails() {
       getGitHubData()
         .then(res => {
           if (cancelled) return;
-          if (res.success) {
-            setGithubData(res.data);
-          } else {
-            setGithubError(res.error || 'Failed to fetch GitHub data');
-          }
+          setGithubData(res.data);
         })
         .catch(err => {
           if (!cancelled) setGithubError(err.message);
@@ -84,6 +88,29 @@ export default function AppDetails() {
     };
   }, [appInfo?.id, isConnected]);
 
+  useEffect(() => {
+    if (appInfo?.id !== 'leetcode' || !isConnected) return;
+
+    let cancelled = false;
+    setLeetcodeLoading(true);
+    setLeetcodeError('');
+
+    getLeetCodeData()
+      .then(res => {
+        if (!cancelled) setLeetcodeData(res.data);
+      })
+      .catch(err => {
+        if (!cancelled) setLeetcodeError(err.message);
+      })
+      .finally(() => {
+        if (!cancelled) setLeetcodeLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [appInfo?.id, isConnected]);
+
   const accounts = id ? (MOCK_ACCOUNTS[id as string] || []) : [];
 
   useEffect(() => {
@@ -99,6 +126,26 @@ export default function AppDetails() {
   }
 
   if (!isConnected) {
+    const isSupported = id ? BACKEND_APPS.has(id) : false;
+    const usesOAuth = id ? OAUTH_APPS.has(id) : false;
+    const startConnection = async () => {
+      setConnectionError('');
+      setIsConnecting(true);
+      try {
+        if (id === 'leetcode') {
+          await connectLeetCode(leetcodeUsername);
+          await refreshConnections();
+          navigate(`/app/apps/${id}?connected=true`, { replace: true });
+          return;
+        }
+        await connectPlatform(id as string);
+      } catch (e: any) {
+        setConnectionError(e.message || 'Failed to connect application');
+      } finally {
+        setIsConnecting(false);
+      }
+    };
+
     return (
       <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="max-w-2xl mx-auto text-center mt-20">
         <div className={`w-20 h-20 mx-auto rounded-3xl bg-white border border-zinc-100 flex items-center justify-center shadow-sm overflow-hidden mb-8`}>
@@ -106,11 +153,31 @@ export default function AppDetails() {
         </div>
         <h1 className="text-3xl font-semibold tracking-tight mb-4">Connect {appInfo.name}</h1>
         <p className="text-zinc-500 font-light mb-10 leading-relaxed max-w-lg mx-auto">
-          Authorized access will allow Synalytix to retrieve engagement analytics and help AI optimize your content for {appInfo.name}.
+          {isSupported
+            ? `Authorized access will allow Synalytix to retrieve engagement analytics and help AI optimize your content for ${appInfo.name}.`
+            : `${appInfo.name} is on the roadmap and does not have a backend connector yet.`}
         </p>
+        {id === 'leetcode' && (
+          <div className="max-w-sm mx-auto mb-6 text-left">
+            <label className="text-[10px] font-bold uppercase tracking-widest text-zinc-400 block mb-2">LeetCode Username</label>
+            <input
+              value={leetcodeUsername}
+              onChange={e => setLeetcodeUsername(e.target.value)}
+              placeholder="your_username"
+              className="w-full rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm outline-none focus:border-black"
+            />
+          </div>
+        )}
+        {connectionError && <p className="text-sm text-red-600 mb-6">{connectionError}</p>}
         <div className="flex gap-4 justify-center">
           <button onClick={() => navigate(-1)} className="px-6 py-3 rounded-full font-medium text-zinc-600 bg-zinc-100 hover:bg-zinc-200 transition-colors">Cancel</button>
-          <button onClick={() => connectPlatform(id as string).catch(e => alert(e.message))} className="px-6 py-3 rounded-full font-medium text-white bg-black hover:bg-zinc-800 transition-colors">Authorize Application</button>
+          <button
+            onClick={startConnection}
+            disabled={!isSupported || isConnecting || (id === 'leetcode' && !leetcodeUsername.trim())}
+            className="px-6 py-3 rounded-full font-medium text-white bg-black hover:bg-zinc-800 transition-colors disabled:cursor-not-allowed disabled:bg-zinc-300"
+          >
+            {isConnecting ? 'Connecting...' : usesOAuth ? 'Authorize Application' : id === 'leetcode' ? 'Connect Username' : 'Coming Soon'}
+          </button>
         </div>
       </motion.div>
     );
@@ -183,7 +250,15 @@ export default function AppDetails() {
   }
 
   // ─── LEETCODE ───
-  if (appInfo.id === 'leetcode') return (
+  if (appInfo.id === 'leetcode') {
+    if (leetcodeLoading) return <div className="p-8 text-center text-zinc-500 mt-20">Loading LeetCode data...</div>;
+    if (leetcodeError) return <div className="p-8 text-center text-red-500 mt-20">{leetcodeError}</div>;
+    if (!leetcodeData) return null;
+
+    const { stats, submissions = [] } = leetcodeData;
+    const acceptance = stats?.acceptance_rate ?? 0;
+
+    return (
     <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="max-w-5xl mx-auto">
       <button onClick={() => navigate('/app/apps')} className="flex items-center gap-2 text-sm text-zinc-500 hover:text-black mb-8 transition-colors">
         <ArrowLeft className="w-4 h-4" /> Back to Apps
@@ -192,7 +267,7 @@ export default function AppDetails() {
         <div className="w-16 h-16 rounded-2xl bg-yellow-50 border border-yellow-200 flex items-center justify-center text-2xl">🎯</div>
         <div>
           <h1 className="text-3xl font-semibold tracking-tight">LeetCode Workspace</h1>
-          <p className="text-zinc-500 font-light text-sm">ramesh_codes · Beats 42.2% globally</p>
+          <p className="text-zinc-500 font-light text-sm">{stats?.username} · Rank {stats?.ranking?.toLocaleString() || 'N/A'}</p>
         </div>
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -208,29 +283,21 @@ export default function AppDetails() {
               <div className="col-span-2">Last Result</div>
               <div className="col-span-2">Submissions</div>
             </div>
-            {[
-              { date: '2025.12.16', title: '352. Data Stream as Disjoint Intervals', diff: 'Hard', result: 'Wrong Answer', subs: 1, pass: false },
-              { date: '2025.12.16', title: '382. Linked List Random Node', diff: 'Med.', result: 'Accepted', subs: 1, pass: true },
-              { date: '2025.12.16', title: '460. LFU Cache', diff: 'Hard', result: 'Accepted', subs: 3, pass: true },
-              { date: '2025.12.16', title: '685. Redundant Connection II', diff: 'Hard', result: 'Accepted', subs: 1, pass: true },
-              { date: '2025.12.16', title: '42. Trapping Rain Water', diff: 'Hard', result: 'Accepted', subs: 1, pass: true },
-              { date: '2025.12.16', title: '23. Merge k Sorted Lists', diff: 'Hard', result: 'Accepted', subs: 1, pass: true },
-              { date: '2025.12.16', title: '329. Longest Increasing Path in Matrix', diff: 'Hard', result: 'Accepted', subs: 1, pass: true },
-              { date: '2025.12.16', title: '297. Serialize and Deserialize Binary Tree', diff: 'Hard', result: 'Accepted', subs: 1, pass: true },
-            ].map((item, i) => (
+            {submissions.map((item: any, i: number) => (
               <div key={i} className="grid grid-cols-12 gap-4 p-4 items-center border-b border-[#F5F5F5] last:border-0 hover:bg-neutral-50 transition-colors text-sm">
-                <div className="col-span-3 text-neutral-500 text-xs">{item.date}</div>
+                <div className="col-span-3 text-neutral-500 text-xs">{new Date(item.timestamp).toLocaleDateString()}</div>
                 <div className="col-span-5">
                   <div className="flex items-center gap-2">
-                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${item.pass ? 'border-green-500' : 'border-neutral-300'}`} />
+                    <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 ${item.status_display === 'Accepted' ? 'border-green-500' : 'border-neutral-300'}`} />
                     <span className="font-medium text-[#1A1A1A] truncate text-xs">{item.title}</span>
                   </div>
-                  <div className={`text-[10px] font-bold mt-0.5 ml-6 ${item.diff === 'Hard' ? 'text-red-500' : 'text-yellow-500'}`}>{item.diff}</div>
+                  <div className="text-[10px] font-bold mt-0.5 ml-6 text-neutral-400">{item.lang}</div>
                 </div>
-                <div className={`col-span-2 font-medium text-xs ${item.pass ? 'text-green-600' : 'text-red-500'}`}>{item.result}</div>
-                <div className="col-span-2 text-xs text-neutral-500">{item.subs}</div>
+                <div className={`col-span-2 font-medium text-xs ${item.status_display === 'Accepted' ? 'text-green-600' : 'text-red-500'}`}>{item.status_display}</div>
+                <div className="col-span-2 text-xs text-neutral-500">1</div>
               </div>
             ))}
+            {submissions.length === 0 && <div className="p-8 text-center text-xs text-neutral-400">No recent submissions found.</div>}
           </div>
         </div>
         <div className="flex flex-col gap-4">
@@ -239,24 +306,24 @@ export default function AppDetails() {
             <div className="flex justify-between items-start mb-4">
               <div>
                 <div className="text-sm text-neutral-500 font-medium mb-1">Total Solved</div>
-                <div className="text-3xl font-bold"><span className="text-blue-500">28</span> <span className="text-sm font-medium text-neutral-400">Problems</span></div>
+                <div className="text-3xl font-bold"><span className="text-blue-500">{stats?.total_solved ?? 0}</span> <span className="text-sm font-medium text-neutral-400">Problems</span></div>
               </div>
-              <div className="text-xs font-semibold bg-neutral-100 rounded-lg px-2 py-1.5">👏 Beats 42.2%</div>
+              <div className="text-xs font-semibold bg-neutral-100 rounded-lg px-2 py-1.5">Rank {stats?.ranking?.toLocaleString() || 'N/A'}</div>
             </div>
             <div className="flex gap-2 mb-4">
-              <div className="flex-1 bg-green-50 text-green-700 text-center rounded-lg py-2 text-xs font-bold">Easy <span className="text-black text-base font-bold block">10</span></div>
-              <div className="flex-1 bg-yellow-50 text-yellow-700 text-center rounded-lg py-2 text-xs font-bold">Med. <span className="text-black text-base font-bold block">10</span></div>
-              <div className="flex-1 bg-red-50 text-red-700 text-center rounded-lg py-2 text-xs font-bold">Hard <span className="text-black text-base font-bold block">8</span></div>
+              <div className="flex-1 bg-green-50 text-green-700 text-center rounded-lg py-2 text-xs font-bold">Easy <span className="text-black text-base font-bold block">{stats?.easy_solved ?? 0}</span></div>
+              <div className="flex-1 bg-yellow-50 text-yellow-700 text-center rounded-lg py-2 text-xs font-bold">Med. <span className="text-black text-base font-bold block">{stats?.medium_solved ?? 0}</span></div>
+              <div className="flex-1 bg-red-50 text-red-700 text-center rounded-lg py-2 text-xs font-bold">Hard <span className="text-black text-base font-bold block">{stats?.hard_solved ?? 0}</span></div>
             </div>
           </div>
           <div className="flex gap-4">
             <div className="flex-1 bg-white border border-[#EFEFEF] rounded-xl p-4">
               <div className="text-xs text-neutral-500 mb-1">Submissions</div>
-              <div className="text-2xl font-bold text-fuchsia-600">37</div>
+              <div className="text-2xl font-bold text-fuchsia-600">{stats?.total_submissions ?? 0}</div>
             </div>
             <div className="flex-1 bg-white border border-[#EFEFEF] rounded-xl p-4">
               <div className="text-xs text-neutral-500 mb-1">Acceptance</div>
-              <div className="text-2xl font-bold text-green-500">94.6<span className="text-sm">%</span></div>
+              <div className="text-2xl font-bold text-green-500">{acceptance}<span className="text-sm">%</span></div>
             </div>
           </div>
           <div className="bg-white border border-[#EFEFEF] rounded-xl p-4">
@@ -274,7 +341,8 @@ export default function AppDetails() {
         </div>
       </div>
     </motion.div>
-  );
+    );
+  }
 
   // ─── INSTAGRAM (Full Insights) ───
   if (appInfo.id === 'instagram') return (

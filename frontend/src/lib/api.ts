@@ -2,6 +2,29 @@ import { supabase } from './supabase';
 
 const BACKEND = import.meta.env.VITE_BACKEND_URL || 'http://localhost:4000';
 
+type ApiEnvelope<T = any> = {
+  success: boolean;
+  data?: T;
+  error?: string | { message?: string };
+  message?: string;
+};
+
+const OAUTH_PLATFORMS = new Set(['github', 'instagram', 'x', 'linkedin']);
+
+function getErrorMessage(body: ApiEnvelope | null, fallback: string) {
+  if (typeof body?.error === 'string') return body.error;
+  if (body?.error?.message) return body.error.message;
+  return body?.message || fallback;
+}
+
+async function readJson<T = any>(res: Response, fallback: string): Promise<ApiEnvelope<T>> {
+  const body = await res.json().catch(() => null) as ApiEnvelope<T> | null;
+  if (!res.ok || !body?.success) {
+    throw new Error(getErrorMessage(body, fallback));
+  }
+  return body;
+}
+
 export async function getAuthHeader(): Promise<Record<string, string>> {
   const { data } = await supabase.auth.getSession();
   const token = data.session?.access_token;
@@ -16,15 +39,17 @@ export async function getAuthHeader(): Promise<Record<string, string>> {
 
 // Connect a platform — redirects browser to platform OAuth page
 export async function connectPlatform(platform: string) {
+  if (!OAUTH_PLATFORMS.has(platform)) {
+    throw new Error(`${platform} does not support OAuth connection yet.`);
+  }
+
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/auth/connect/${platform}?format=json`, {
     headers,
   });
 
-  const body = await res.json().catch(() => null);
-  if (!res.ok || !body?.success || !body.data?.url) {
-    throw new Error(body?.error || 'Failed to start platform authorization');
-  }
+  const body = await readJson<{ url: string }>(res, 'Failed to start platform authorization');
+  if (!body.data?.url) throw new Error('Backend did not return an authorization URL.');
 
   window.location.href = body.data.url;
 }
@@ -33,8 +58,7 @@ export async function connectPlatform(platform: string) {
 export async function getConnectionStatus() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/auth/status`, { headers });
-  if (!res.ok) throw new Error('Failed to get connection status');
-  return res.json();
+  return readJson(res, 'Failed to get connection status');
 }
 
 // Disconnect a platform
@@ -44,45 +68,45 @@ export async function disconnectPlatform(platform: string) {
     method: 'DELETE',
     headers,
   });
-  if (!res.ok) throw new Error('Failed to disconnect platform');
-  return res.json();
+  return readJson(res, 'Failed to disconnect platform');
 }
 
 // Get all platform data at once (for dashboard)
 export async function getDashboardSummary() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/data/summary`, { headers });
-  if (!res.ok) throw new Error('Failed to get dashboard summary');
-  return res.json();
+  return readJson(res, 'Failed to get dashboard summary');
 }
 
 // Platform-specific fetchers
 export async function getGitHubData() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/data/github/all`, { headers });
-  if (!res.ok) throw new Error('Failed to get GitHub data');
-  return res.json();
+  return readJson(res, 'Failed to get GitHub data');
 }
 
 export async function getInstagramData() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/data/instagram/all`, { headers });
-  if (!res.ok) throw new Error('Failed to get Instagram data');
-  return res.json();
+  return readJson(res, 'Failed to get Instagram data');
 }
 
 export async function getXData() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/data/x/all`, { headers });
-  if (!res.ok) throw new Error('Failed to get X data');
-  return res.json();
+  return readJson(res, 'Failed to get X data');
 }
 
 export async function getLeetCodeData() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/data/leetcode/all`, { headers });
-  if (!res.ok) throw new Error('Failed to get LeetCode data');
-  return res.json();
+  return readJson(res, 'Failed to get LeetCode data');
+}
+
+export async function getLinkedInData() {
+  const headers = await getAuthHeader();
+  const res = await fetch(`${BACKEND}/api/data/linkedin/all`, { headers });
+  return readJson(res, 'Failed to get LinkedIn data');
 }
 
 // Connect LeetCode (special — just username, no OAuth)
@@ -93,8 +117,7 @@ export async function connectLeetCode(username: string) {
     headers,
     body: JSON.stringify({ username }),
   });
-  if (!res.ok) throw new Error('Failed to connect LeetCode');
-  return res.json();
+  return readJson(res, 'Failed to connect LeetCode');
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -111,16 +134,15 @@ export async function generateRecommendations(options?: {
     headers,
     body: JSON.stringify(options || {}),
   });
-  const body = await res.json();
-  if (!res.ok) throw new Error(body?.error?.message || 'Failed to generate recommendations');
+  const body = await res.json().catch(() => null);
+  if (!res.ok || !body?.success) throw new Error(getErrorMessage(body, 'Failed to generate recommendations'));
   return body;
 }
 
 export async function getRecommendationHistory() {
   const headers = await getAuthHeader();
   const res = await fetch(`${BACKEND}/api/recommendations/history`, { headers });
-  if (!res.ok) throw new Error('Failed to get recommendation history');
-  return res.json();
+  return readJson(res, 'Failed to get recommendation history');
 }
 
 export async function completeRecommendation(id: string) {
@@ -129,8 +151,7 @@ export async function completeRecommendation(id: string) {
     method: 'PATCH',
     headers,
   });
-  if (!res.ok) throw new Error('Failed to complete recommendation');
-  return res.json();
+  return readJson(res, 'Failed to complete recommendation');
 }
 
 export async function dismissRecommendation(id: string) {
@@ -139,6 +160,5 @@ export async function dismissRecommendation(id: string) {
     method: 'PATCH',
     headers,
   });
-  if (!res.ok) throw new Error('Failed to dismiss recommendation');
-  return res.json();
+  return readJson(res, 'Failed to dismiss recommendation');
 }

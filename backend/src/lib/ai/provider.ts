@@ -56,20 +56,33 @@ class AnthropicProvider implements AIProvider {
     const temperature = parseFloat(process.env.AI_TEMPERATURE || '0.4');
     const model = process.env.ANTHROPIC_MODEL || 'claude-sonnet-4-20250514';
 
-    // Dynamic import to avoid requiring the SDK unless used
-    const { default: Anthropic } = await import('@anthropic-ai/sdk');
-    const client = new Anthropic({ apiKey });
-
-    const response = await client.messages.create({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      system: systemPrompt,
-      messages: [{ role: 'user', content: userPrompt }],
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }],
+      }),
     });
 
-    const block = response.content[0];
-    if (block.type !== 'text') throw new Error('Anthropic returned non-text response');
+    if (!response.ok) {
+      throw new Error(`Anthropic request failed (${response.status}): ${await response.text()}`);
+    }
+
+    const data = await response.json() as {
+      content?: Array<{ type: string; text?: string }>;
+    };
+    const block = data.content?.[0];
+    if (!block || block.type !== 'text' || !block.text) {
+      throw new Error('Anthropic returned empty or non-text response');
+    }
     return block.text;
   }
 }
@@ -87,21 +100,31 @@ class OpenAIProvider implements AIProvider {
     const temperature = parseFloat(process.env.AI_TEMPERATURE || '0.4');
     const model = process.env.OPENAI_MODEL || 'gpt-4o';
 
-    // Dynamic import to avoid requiring the SDK unless used
-    const { default: OpenAI } = await import('openai');
-    const client = new OpenAI({ apiKey });
-
-    const response = await client.chat.completions.create({
-      model,
-      max_tokens: maxTokens,
-      temperature,
-      messages: [
-        { role: 'system', content: systemPrompt },
-        { role: 'user', content: userPrompt },
-      ],
+    const response = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model,
+        max_tokens: maxTokens,
+        temperature,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: userPrompt },
+        ],
+      }),
     });
 
-    const text = response.choices[0]?.message?.content;
+    if (!response.ok) {
+      throw new Error(`OpenAI request failed (${response.status}): ${await response.text()}`);
+    }
+
+    const data = await response.json() as {
+      choices?: Array<{ message?: { content?: string } }>;
+    };
+    const text = data.choices?.[0]?.message?.content;
     if (!text) throw new Error('OpenAI returned empty response');
     return text;
   }

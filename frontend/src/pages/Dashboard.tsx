@@ -1,6 +1,6 @@
 import { ArrowUpRight, Users, MessageSquare, Eye, TrendingUp, Activity, Zap } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { MOCK_POSTS, IG_OVERVIEW, IG_AUDIENCE } from '../data/mockData';
+import { MOCK_APPS, MOCK_POSTS, IG_OVERVIEW, IG_AUDIENCE } from '../data/mockData';
 import { motion } from 'framer-motion';
 import { LineChart, Line, AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
@@ -220,10 +220,9 @@ export default function Dashboard() {
                 <div key={post.id} className="p-5 hover:bg-neutral-50 transition-colors group cursor-pointer">
                   <div className="flex justify-between items-start mb-2">
                     <div className="text-sm font-medium text-[#1A1A1A] group-hover:text-black line-clamp-1 flex-1 pr-4">{post.content}</div>
-                    <span className="text-[10px] font-bold text-neutral-400 uppercase bg-neutral-50 px-2 py-1 rounded flex items-center gap-1.5">
-                      <img src={MOCK_APPS.find(a => a.id === post.app)?.iconUrl} alt={post.app} className="w-3 h-3 object-cover rounded-full" />
-                      {post.app?.toUpperCase()}
-                    </span>
+                    <div className="w-10 h-10 rounded-full overflow-hidden border border-neutral-100 flex-shrink-0 shadow-sm">
+                      <img src={MOCK_APPS.find(a => a.id === post.app)?.iconUrl} alt={post.app} className="w-full h-full object-cover" />
+                    </div>
                   </div>
                   <div className="flex gap-5 text-xs text-[#666] font-light">
                     {post.views ? <span className="flex items-center gap-1.5"><Eye className="w-3 h-3" /> {post.views >= 1000 ? `${(post.views/1000).toFixed(1)}K` : post.views} views</span> : null}
@@ -247,9 +246,9 @@ export default function Dashboard() {
               connectedApps.map(app => {
                 const appInfo = MOCK_APPS.find(a => a.id === app);
                 return (
-                  <div key={app} className="flex items-center justify-between p-3 rounded-xl border border-neutral-100 bg-neutral-50 text-xs">
-                    <div className="flex items-center gap-2">
-                      <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-4 h-4 object-cover rounded-full" />
+                  <div key={app} className="flex items-center justify-between py-4 px-5 rounded-xl border border-neutral-100 bg-neutral-50 text-xs">
+                    <div className="flex items-center gap-4">
+                      <img src={appInfo?.iconUrl} alt={appInfo?.name} className="w-8 h-8 object-cover rounded-full" />
                       <span className="font-semibold uppercase tracking-wider text-[#1A1A1A]">{appInfo?.name}</span>
                     </div>
                     <span className="text-green-700 bg-green-100/50 px-2.5 py-1 rounded border border-green-200/50 font-bold uppercase text-[9px]">Active</span>

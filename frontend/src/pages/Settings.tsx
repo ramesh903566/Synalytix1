@@ -4,6 +4,8 @@ import { CheckCircle2 } from 'lucide-react';
 import { MOCK_APPS } from '../data/mockData';
 import { useAppContext } from '../context/AppContext';
 
+const BACKEND_APPS = new Set(['github', 'instagram', 'x', 'linkedin', 'leetcode']);
+
 export default function Settings() {
   const { connectedApps, disconnectApp } = useAppContext();
   const [activeTab, setActiveTab] = useState<'account' | 'preferences' | 'integrations' | 'billing'>('account');
@@ -160,6 +162,7 @@ export default function Settings() {
                 <h2 className="text-base font-semibold text-[#1A1A1A] mb-6">Connected Integrations</h2>
                 {MOCK_APPS.map(app => {
                   const isConn = connectedApps.includes(app.id as any);
+                  const isSupported = BACKEND_APPS.has(app.id);
                   return (
                     <div key={app.id} className="flex items-center justify-between p-4 rounded-xl border border-[#EFEFEF] bg-[#FBFBFB]">
                       <div className="flex items-center gap-3">
@@ -168,11 +171,11 @@ export default function Settings() {
                         </div>
                         <div>
                           <div className="text-sm font-semibold text-[#1A1A1A]">{app.name}</div>
-                          <div className="text-[10px] text-[#999]">{isConn ? 'Connected and syncing' : 'Not connected'}</div>
+                          <div className="text-[10px] text-[#999]">{isConn ? 'Connected and syncing' : isSupported ? 'Not connected' : 'Coming soon'}</div>
                         </div>
                       </div>
                       {isConn ? (
-                        <button onClick={()=>disconnectApp(app.id as any)} className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
+                        <button onClick={()=>disconnectApp(app.id as any).catch(e => alert(e.message))} className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-100 px-3 py-1.5 rounded-lg hover:bg-red-100 transition-colors">
                           Disconnect
                         </button>
                       ) : (

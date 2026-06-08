@@ -9,8 +9,8 @@ import { Platform } from '../types';
 
 const router = Router();
 
-const BACKEND_URL = process.env.BACKEND_URL!;
-const FRONTEND_URL = process.env.FRONTEND_URL!;
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:4000';
+const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 
 function wantsJson(req: Request) {
   return req.get('accept')?.includes('application/json') || req.query.format === 'json';

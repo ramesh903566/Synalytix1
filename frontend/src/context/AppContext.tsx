@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { AppName } from '../types';
 import { supabase } from '../lib/supabase';
-import { getConnectionStatus } from '../lib/api';
+import { disconnectPlatform, getConnectionStatus } from '../lib/api';
 
 export interface ScheduledPost {
   id: string;
@@ -38,7 +38,7 @@ interface AppContextType {
   logout: () => void;
   connectedApps: AppName[];
   connectApp: (app: AppName) => void;
-  disconnectApp: (app: AppName) => void;
+  disconnectApp: (app: AppName) => Promise<void>;
   scheduledPosts: ScheduledPost[];
   addScheduledPost: (post: Omit<ScheduledPost, 'id' | 'status'>) => void;
   deleteScheduledPost: (id: string) => void;
@@ -81,8 +81,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!connectedApps.includes(app)) setConnectedApps([...connectedApps, app]);
   };
 
-  const disconnectApp = (app: AppName) => {
-    setConnectedApps(connectedApps.filter((a) => a !== app));
+  const disconnectApp = async (app: AppName) => {
+    await disconnectPlatform(app);
+    setConnectedApps(prev => prev.filter((a) => a !== app));
   };
 
   const addScheduledPost = (post: Omit<ScheduledPost, 'id' | 'status'>) => {

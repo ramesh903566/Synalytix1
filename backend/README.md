@@ -80,7 +80,7 @@ For your frontend login (not for platform OAuth — that goes through your backe
 2. Click **OAuth Apps → New OAuth App**
 3. Fill in:
    - Application name: `Synalytix`
-   - Homepage URL: `http://localhost:5173`
+   - Homepage URL: `http://localhost:3000`
    - Callback URL: `http://localhost:4000/api/auth/callback/github`
 4. Click Register application
 5. Copy **Client ID** → `GITHUB_CLIENT_ID`
@@ -154,7 +154,7 @@ SUPABASE_SERVICE_ROLE_KEY=eyJhbGciOiJIUzI1NiIs...
 SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIs...
 JWT_SECRET=your-supabase-jwt-secret-from-dashboard
 
-FRONTEND_URL=http://localhost:5173
+FRONTEND_URL=http://localhost:3000
 BACKEND_URL=http://localhost:4000
 
 # Generate with: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
@@ -370,7 +370,7 @@ router.get('/connect/:platform', async (req, res) => {
 ### 5e. Handle the callback redirect
 
 After successful OAuth, the backend redirects to:
-`http://localhost:5173/app/apps/github?connected=true`
+`http://localhost:3000/app/apps/github?connected=true`
 
 In your frontend, detect this and show a success message:
 ```typescript

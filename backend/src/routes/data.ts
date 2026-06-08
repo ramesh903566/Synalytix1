@@ -351,6 +351,27 @@ router.get('/linkedin/posts', authenticate, async (req: Request, res: Response) 
   }
 });
 
+// GET /api/data/linkedin/all
+router.get('/linkedin/all', authenticate, async (req: Request, res: Response) => {
+  const conn = await getConnection(req.userId!, 'linkedin', res);
+  if (!conn) return;
+
+  try {
+    const [profile, posts] = await Promise.all([
+      getCached(`li_profile_${req.userId}`, 60, () =>
+        LinkedInService.getProfile(conn.decrypted_access_token)
+      ),
+      getCached(`li_posts_${req.userId}`, 60, () =>
+        LinkedInService.getPostAnalytics(conn.decrypted_access_token, conn.platform_user_id)
+      ),
+    ]);
+
+    res.json({ success: true, data: { profile, posts } });
+  } catch (err: any) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  LEETCODE ROUTES
 //  No OAuth — just username. We store username in platform_connections table.
