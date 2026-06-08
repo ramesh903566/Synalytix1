@@ -1,109 +1,168 @@
-import { PlatformConnector } from './types';
-import { ConnectionService } from '../../../services/connectionService';
-import { GitHubService } from '../../../services/githubService';
-import { GITHUB_SCORE_WEIGHTS } from '../constants';
+import type { PlatformConnector, RawPlatformMetrics } from "./types";
+import { GITHUB_WEIGHTS } from "../constants";
+import { supabase as db } from "../../../lib/supabase";
+import { logger } from "../../../lib/logger";
+
+interface GitHubMetrics extends RawPlatformMetrics {
+  commitStreakDays: number;
+  repoCount: number;
+  hasReadmeOnAll: boolean;
+  languages: string[];
+  openSourceContribs: number;
+  daysSinceLastCommit: number;
+  totalStars: number;
+}
 
 export const githubConnector: PlatformConnector = {
-  slug: 'github',
-  displayName: 'GitHub',
+  slug: "github",
+  displayName: "GitHub",
 
   async isConnected(userId: string): Promise<boolean> {
-    return ConnectionService.isConnected(userId, 'github');
+    const { data } = await db
+      .from("platform_connections")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("platform", "github")
+      .single();
+    return !!data;
   },
 
-  async fetchRawData(userId: string): Promise<Record<string, unknown>> {
-    const conn = await ConnectionService.getByUserAndPlatform(userId, 'github');
-    if (!conn) throw new Error('GitHub not connected');
+  async fetchRawData(userId: string): Promise<RawPlatformMetrics> {
+    const { data: conn } = await db
+      .from("platform_connections")
+      .select("access_token_encrypted, platform_username")
+      .eq("user_id", userId)
+      .eq("platform", "github")
+      .single();
 
-    const [profile, repos, contributions] = await Promise.all([
-      GitHubService.getProfile(conn.decrypted_access_token),
-      GitHubService.getAllRepos(conn.decrypted_access_token),
-      GitHubService.getContributions(conn.decrypted_access_token, conn.platform_username),
-    ]);
+    if (!conn) throw new Error("GitHub not connected");
 
-    const languages = await GitHubService.getLanguageBreakdown(conn.decrypted_access_token, repos);
-    const uniqueLanguages = Object.keys(languages);
+    const { decryptToken } = await import("../../../lib/crypto");
+    const token = decryptToken(conn.access_token_encrypted);
+    const username = conn.platform_username;
 
-    // Compute commit streak from recent push events
-    const pushDates = contributions.events
-      .filter(e => e.type === 'PushEvent')
-      .map(e => new Date(e.created_at).toDateString());
-    const uniquePushDays = [...new Set(pushDates)];
+    const headers = {
+      Authorization: `Bearer ${token}`,
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+    };
 
-    // Count streak days (consecutive from today backwards)
+    const reposRes = await fetch(
+      `https://api.github.com/users/${username}/repos?per_page=100&sort=updated`,
+      { headers }
+    );
+    if (!reposRes.ok) throw new Error(`GitHub repos fetch failed: ${reposRes.status}`);
+    const repos: Array<{
+      name: string;
+      stargazers_count: number;
+      language: string | null;
+      fork: boolean;
+      has_readme?: boolean;
+    }> = (await reposRes.json()) as any;
+
+    const ownRepos = repos.filter((r) => !r.fork);
+
+    const statsRes = await fetch(
+      `https://api.github.com/users/${username}/events/public?per_page=100`,
+      { headers }
+    );
+    const events: Array<{ type: string; created_at: string }> =
+      statsRes.ok ? ((await statsRes.json()) as any) : [];
+
+    const pushDays = new Set(
+      events
+        .filter((e) => e.type === "PushEvent")
+        .map((e) => new Date(e.created_at).toISOString().slice(0, 10))
+    );
+
     let streakDays = 0;
     const today = new Date();
     for (let i = 0; i < 60; i++) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
-      if (uniquePushDays.includes(d.toDateString())) {
+      if (pushDays.has(d.toISOString().slice(0, 10))) {
         streakDays++;
       } else if (i > 0) {
         break;
       }
     }
 
-    // Check README presence (approximate: repos with description)
-    const reposWithReadme = repos.filter(r => r.description && r.description.length > 0);
-    const readmeRatio = repos.length > 0 ? reposWithReadme.length / repos.length : 0;
-
-    // Days since last commit
-    const lastEvent = contributions.events[0];
-    const daysSinceLastCommit = lastEvent
-      ? Math.floor((Date.now() - new Date(lastEvent.created_at).getTime()) / (1000 * 60 * 60 * 24))
+    const lastPush = events.find((e) => e.type === "PushEvent");
+    const daysSinceLastCommit = lastPush
+      ? Math.floor(
+          (Date.now() - new Date(lastPush.created_at).getTime()) /
+            (1000 * 60 * 60 * 24)
+        )
       : 999;
 
-    return {
-      profile,
-      repos: repos.slice(0, 20), // limit for prompt size
-      repoCount: repos.length,
-      contributions,
-      languages: uniqueLanguages,
-      languageCount: uniqueLanguages.length,
-      totalStars: repos.reduce((sum, r) => sum + r.stargazers_count, 0),
-      streakDays,
-      readmeRatio,
+    const languages = [
+      ...new Set(ownRepos.map((r) => r.language).filter(Boolean) as string[]),
+    ];
+
+    let hasReadmeOnAll = false;
+    try {
+      const readmeChecks = await Promise.allSettled(
+        ownRepos.slice(0, 5).map((r) =>
+          fetch(`https://api.github.com/repos/${username}/${r.name}/readme`, {
+            headers,
+          }).then((res) => res.ok)
+        )
+      );
+      hasReadmeOnAll = readmeChecks.every(
+        (r) => r.status === "fulfilled" && r.value === true
+      );
+    } catch {
+      hasReadmeOnAll = false;
+    }
+
+    const prRes = await fetch(
+      `https://api.github.com/search/issues?q=type:pr+author:${username}+is:merged+-user:${username}&per_page=10`,
+      { headers }
+    );
+    const prData: { total_count: number } = prRes.ok
+      ? ((await prRes.json()) as any)
+      : { total_count: 0 };
+
+    const metrics: GitHubMetrics = {
+      commitStreakDays: streakDays,
+      repoCount: ownRepos.length,
+      hasReadmeOnAll,
+      languages,
+      openSourceContribs: prData.total_count,
       daysSinceLastCommit,
-      openSourceContributions: contributions.recent_pull_requests,
+      totalStars: ownRepos.reduce((s, r) => s + r.stargazers_count, 0),
     };
+
+    logger.info("GitHub metrics fetched", { userId, repoCount: ownRepos.length });
+    return metrics;
   },
 
-  computeScore(raw: Record<string, unknown>): number {
-    const streakDays = (raw.streakDays as number) || 0;
-    const repoCount = (raw.repoCount as number) || 0;
-    const readmeRatio = (raw.readmeRatio as number) || 0;
-    const languageCount = (raw.languageCount as number) || 0;
-    const osContribs = (raw.openSourceContributions as number) || 0;
-    const daysSince = (raw.daysSinceLastCommit as number) || 999;
+  computeScore(raw: RawPlatformMetrics): number {
+    const m = raw as GitHubMetrics;
+    let score = 0;
 
-    const w = GITHUB_SCORE_WEIGHTS;
+    score += Math.min(m.commitStreakDays / 30, 1) * GITHUB_WEIGHTS.commitStreakDays * 100;
+    score += Math.min(m.repoCount / 20, 1) * GITHUB_WEIGHTS.repoCount * 100;
+    score += (m.hasReadmeOnAll ? 1 : 0) * GITHUB_WEIGHTS.hasReadmeOnAll * 100;
+    
+    const langScore = m.languages.length >= 3 ? 1 : m.languages.length === 2 ? 0.5 : 0.25;
+    score += langScore * GITHUB_WEIGHTS.languageDiversity * 100;
 
-    // Commit streak: max 30 days
-    const streakScore = Math.min(streakDays / 30, 1) * w.commitStreakDays * 100;
-    // Repo count: max 20
-    const repoScore = Math.min(repoCount / 20, 1) * w.repoCount * 100;
-    // README presence
-    const readmeScore = (readmeRatio >= 0.8 ? 1 : readmeRatio) * w.hasReadmeOnAll * 100;
-    // Language diversity: 1=5, 2=10, 3+=20
-    const langScore = (languageCount >= 3 ? 1 : languageCount >= 2 ? 0.5 : 0.25) * w.topLanguagesDiversity * 100;
-    // Open source contributions (max 10 PRs)
-    const osScore = Math.min(osContribs / 10, 1) * w.openSourceContributions * 100;
-    // Recency: 0 days=10, 30+ days=0
-    const recencyScore = Math.max(0, 1 - daysSince / 30) * w.lastCommitRecency * 100;
+    score += Math.min(m.openSourceContribs / 10, 1) * GITHUB_WEIGHTS.openSourceContribs * 100;
+    score += Math.max(0, 1 - m.daysSinceLastCommit / 30) * GITHUB_WEIGHTS.lastCommitRecency * 100;
 
-    return Math.round(Math.min(100, streakScore + repoScore + readmeScore + langScore + osScore + recencyScore));
+    return Math.round(Math.min(score, 100));
   },
 
-  extractMetrics(raw: Record<string, unknown>): Record<string, unknown> {
+  extractMetrics(raw: RawPlatformMetrics): RawPlatformMetrics {
+    const m = raw as GitHubMetrics;
     return {
-      repoCount: raw.repoCount,
-      totalStars: raw.totalStars,
-      streakDays: raw.streakDays,
-      languageCount: raw.languageCount,
-      languages: raw.languages,
-      daysSinceLastCommit: raw.daysSinceLastCommit,
-      openSourceContributions: raw.openSourceContributions,
-      readmeRatio: raw.readmeRatio,
+      commitStreakDays: m.commitStreakDays,
+      repoCount: m.repoCount,
+      languages: m.languages,
+      openSourceContribs: m.openSourceContribs,
+      daysSinceLastCommit: m.daysSinceLastCommit,
+      totalStars: m.totalStars,
     };
   },
 };

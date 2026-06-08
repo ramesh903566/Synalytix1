@@ -1,20 +1,16 @@
-import { PlatformConnector } from './types';
-import { githubConnector } from './github';
-import { leetcodeConnector } from './leetcode';
-import { linkedinConnector } from './linkedin';
-import { xConnector } from './x';
+import type { PlatformConnector } from "./types";
+import { githubConnector }   from "./github";
+import { leetcodeConnector } from "./leetcode";
+import { linkedinConnector } from "./linkedin";
+import { xConnector }        from "./x";
 
-/** Registry of all available platform connectors */
-export const CONNECTORS: PlatformConnector[] = [
+export const ALL_CONNECTORS: PlatformConnector[] = [
   githubConnector,
   leetcodeConnector,
   linkedinConnector,
   xConnector,
 ];
 
-/** Look up a connector by its slug */
-export function getConnector(slug: string): PlatformConnector | undefined {
-  return CONNECTORS.find(c => c.slug === slug);
-}
-
-export type { PlatformConnector } from './types';
+export const CONNECTOR_MAP: Record<string, PlatformConnector> = Object.fromEntries(
+  ALL_CONNECTORS.map((c) => [c.slug, c])
+);

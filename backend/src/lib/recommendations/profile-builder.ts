@@ -1,109 +1,111 @@
-import { supabase } from '../supabase';
-import { CONNECTORS } from './connectors';
-import { UnifiedUserProfile } from '../../types/recommendations';
+import type { UnifiedUserProfile } from "../../types/recommendations";
+import type { PlatformConnector, RawPlatformMetrics } from "./connectors/types";
+import {
+  CAREER_SCORE_COMPOSITE,
+  EMPLOYABILITY_COMPOSITE,
+  BRANDING_COMPOSITE,
+  TECHNICAL_COMPOSITE,
+} from "./constants";
+import { supabase as db } from "../supabase";
 
-/**
- * Builds a UnifiedUserProfile by aggregating data from all connected platforms.
- * This is Step 1–2 of the engine pipeline.
- */
-export async function buildUserProfile(userId: string): Promise<UnifiedUserProfile> {
-  // 1. Fetch user profile metadata (career goal, experience level, etc.)
-  const { data: userProfile } = await supabase
-    .from('user_profiles')
-    .select('career_goal, experience_level')
-    .eq('id', userId)
+interface PlatformResult {
+  slug: string;
+  score: number | null;
+  metrics: RawPlatformMetrics;
+}
+
+export async function buildUnifiedProfile(
+  userId: string,
+  connectors: PlatformConnector[]
+): Promise<UnifiedUserProfile> {
+  const { data: userProfile } = await db
+    .from("user_profiles")
+    .select("career_goal, experience_level, primary_stack")
+    .eq("id", userId)
     .single();
 
-  const careerGoal = userProfile?.career_goal || 'Advance my software engineering career';
-  const experienceLevel = userProfile?.experience_level || 'mid';
+  const careerGoal = userProfile?.career_goal ?? "Software Engineer";
+  const experienceLevel = (userProfile?.experience_level ?? "student") as
+    | "student"
+    | "junior"
+    | "mid"
+    | "senior"
+    | "lead";
+  const primaryStack: string[] = userProfile?.primary_stack ?? [];
 
-  // 2. Determine which platforms are connected
-  const connectedPlatforms: string[] = [];
-  const scores: Record<string, number | null> = {
-    github: null,
-    linkedin: null,
-    leetcode: null,
-    x: null,
-  };
-  const rawMetrics: Record<string, unknown> = {};
-  const primaryStack: string[] = [];
-
-  // 3. For each connector, check connection and fetch data
-  for (const connector of CONNECTORS) {
-    try {
+  const results = await Promise.allSettled(
+    connectors.map(async (connector): Promise<PlatformResult> => {
       const connected = await connector.isConnected(userId);
-      if (!connected) continue;
-
-      connectedPlatforms.push(connector.slug);
-
-      const rawData = await connector.fetchRawData(userId);
-      const score = connector.computeScore(rawData);
-      const metrics = connector.extractMetrics(rawData);
-
-      scores[connector.slug] = score;
-      rawMetrics[connector.slug] = metrics;
-
-      // Extract languages from GitHub for primaryStack
-      if (connector.slug === 'github' && rawData.languages) {
-        primaryStack.push(...(rawData.languages as string[]).slice(0, 5));
+      if (!connected) {
+        return { slug: connector.slug, score: null, metrics: {} };
       }
-    } catch (err) {
-      console.error(`[ProfileBuilder] Error fetching ${connector.slug}:`, err);
-      // Continue with other platforms — don't fail the whole profile
+      const raw = await connector.fetchRawData(userId);
+      const score = connector.computeScore(raw);
+      const metrics = connector.extractMetrics(raw);
+      return { slug: connector.slug, score, metrics };
+    })
+  );
+
+  const platformResults: PlatformResult[] = results.map((r) =>
+    r.status === "fulfilled"
+      ? r.value
+      : { slug: "unknown", score: null, metrics: {} }
+  );
+
+  const scoreMap: Record<string, number | null> = {};
+  const rawMetrics: Record<string, unknown> = {};
+
+  for (const result of platformResults) {
+    scoreMap[result.slug] = result.score;
+    if (Object.keys(result.metrics).length > 0) {
+      rawMetrics[result.slug] = result.metrics;
     }
   }
 
-  // 4. Sanitise PII before including in profile (strip emails, tokens)
-  const sanitisedMetrics: Record<string, unknown> = {};
-  for (const [key, value] of Object.entries(rawMetrics)) {
-    sanitisedMetrics[key] = sanitisePII(value);
-  }
+  const connectedPlatforms = platformResults
+    .filter((r) => r.score !== null)
+    .map((r) => r.slug);
 
   return {
     userId,
     careerGoal,
-    experienceLevel: experienceLevel as UnifiedUserProfile['experienceLevel'],
-    primaryStack: primaryStack.length > 0 ? primaryStack : ['General Software Engineering'],
+    experienceLevel,
+    primaryStack,
     connectedPlatforms,
     scores: {
-      github: scores.github ?? null,
-      linkedin: scores.linkedin ?? null,
-      leetcode: scores.leetcode ?? null,
-      x: scores.x ?? null,
+      github: scoreMap["github"] ?? null,
+      linkedin: scoreMap["linkedin"] ?? null,
+      leetcode: scoreMap["leetcode"] ?? null,
+      x: scoreMap["x"] ?? null,
     },
-    rawMetrics: sanitisedMetrics,
+    rawMetrics,
   };
 }
 
-/**
- * Recursively strip PII-like values from objects.
- * Removes email addresses, tokens, and sensitive keys.
- */
-function sanitisePII(obj: unknown): unknown {
-  if (typeof obj === 'string') {
-    // Strip email patterns
-    if (/\S+@\S+\.\S+/.test(obj)) return '[REDACTED]';
-    // Strip token-like strings (long hex/base64)
-    if (obj.length > 50 && /^[a-zA-Z0-9+/=_-]+$/.test(obj)) return '[REDACTED]';
-    return obj;
-  }
-
-  if (Array.isArray(obj)) {
-    return obj.map(sanitisePII);
-  }
-
-  if (obj && typeof obj === 'object') {
-    const sanitised: Record<string, unknown> = {};
-    for (const [key, value] of Object.entries(obj as Record<string, unknown>)) {
-      // Skip keys that look like tokens or secrets
-      const lowerKey = key.toLowerCase();
-      if (lowerKey.includes('token') || lowerKey.includes('secret') || lowerKey.includes('password') || lowerKey.includes('email')) {
-        continue;
+export function computeCareerScores(
+  platformScores: Record<string, number | null>
+): { career: number; employability: number; branding: number; technical: number; computedAt: string } {
+  function weighted(
+    weights: Record<string, number>,
+    scores: Record<string, number | null>
+  ): number {
+    let total = 0;
+    let weightSum = 0;
+    for (const [platform, weight] of Object.entries(weights)) {
+      const score = scores[platform];
+      if (score !== null && score !== undefined) {
+        total += score * weight;
+        weightSum += weight;
       }
-      sanitised[key] = sanitisePII(value);
     }
-    return sanitised;
+    return weightSum > 0 ? Math.round(total / weightSum) : 0;
   }
 
-  return obj;
+  return {
+    career: weighted(CAREER_SCORE_COMPOSITE, platformScores),
+    employability: weighted(EMPLOYABILITY_COMPOSITE, platformScores),
+    branding: weighted(BRANDING_COMPOSITE, platformScores),
+    technical: weighted(TECHNICAL_COMPOSITE, platformScores),
+    computedAt: new Date().toISOString(),
+  };
 }

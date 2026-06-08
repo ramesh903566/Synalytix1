@@ -1,70 +1,134 @@
-import { PlatformConnector } from './types';
-import { ConnectionService } from '../../../services/connectionService';
-import { XService } from '../../../services/platformServices';
+import type { PlatformConnector, RawPlatformMetrics } from "./types";
+import { X_WEIGHTS } from "../constants";
+import { supabase as db } from "../../../lib/supabase";
+import { logger } from "../../../lib/logger";
+
+interface XMetrics extends RawPlatformMetrics {
+  postFrequency: number;        // posts per week (last 30 days)
+  followerGrowthRate: number;   // % per month
+  engagementRate: number;       // avg engagement / followers
+  followerCount: number;
+  hasBio: boolean;
+}
 
 export const xConnector: PlatformConnector = {
-  slug: 'x',
-  displayName: 'X (Twitter)',
+  slug: "x",
+  displayName: "X (Twitter)",
 
   async isConnected(userId: string): Promise<boolean> {
-    return ConnectionService.isConnected(userId, 'x');
+    const { data } = await db
+      .from("platform_connections")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("platform", "x")
+      .single();
+    return !!data;
   },
 
-  async fetchRawData(userId: string): Promise<Record<string, unknown>> {
-    const conn = await ConnectionService.getByUserAndPlatform(userId, 'x');
-    if (!conn) throw new Error('X not connected');
+  async fetchRawData(userId: string): Promise<RawPlatformMetrics> {
+    const { data: conn } = await db
+      .from("platform_connections")
+      .select("access_token_encrypted, platform_user_id")
+      .eq("user_id", userId)
+      .eq("platform", "x")
+      .single();
 
-    const [profile, tweets] = await Promise.all([
-      XService.getProfile(conn.decrypted_access_token),
-      XService.getRecentTweets(conn.decrypted_access_token, conn.platform_user_id, 20),
-    ]);
+    if (!conn) throw new Error("X not connected");
 
-    // Post frequency: tweets in the dataset
-    const postFrequency = tweets.length;
+    const { decryptToken } = await import("../../../lib/crypto");
+    const token = decryptToken(conn.access_token_encrypted);
+    const xUserId = conn.platform_user_id;
 
-    // Engagement rate: avg (likes + retweets + replies) per tweet
-    const totalEngagement = tweets.reduce((sum, t) => {
-      const m = t.public_metrics;
-      return sum + m.like_count + m.retweet_count + m.reply_count + m.quote_count;
-    }, 0);
-    const engagementRate = tweets.length > 0 ? totalEngagement / tweets.length : 0;
-
-    return {
-      profile,
-      tweets: tweets.slice(0, 10),
-      followersCount: profile.followers_count,
-      followingCount: profile.following_count,
-      tweetCount: profile.tweet_count,
-      postFrequency,
-      engagementRate,
-      followerGrowthRate: 0, // Not available in a single snapshot
+    const headers = {
+      Authorization: `Bearer ${token}`,
     };
+
+    const userRes = await fetch(
+      `https://api.twitter.com/2/users/${xUserId}?user.fields=public_metrics,description`,
+      { headers }
+    );
+    if (!userRes.ok) throw new Error(`X user fetch failed: ${userRes.status}`);
+    const userData: {
+      data: {
+        description: string;
+        public_metrics: {
+          followers_count: number;
+          tweet_count: number;
+        };
+      };
+    } = (await userRes.json()) as any;
+
+    const followers = userData.data.public_metrics.followers_count;
+    const hasBio = !!userData.data.description;
+
+    const sinceDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+    const tweetsRes = await fetch(
+      `https://api.twitter.com/2/users/${xUserId}/tweets?max_results=100&start_time=${sinceDate}&tweet.fields=public_metrics`,
+      { headers }
+    );
+
+    let postFrequency = 0;
+    let engagementRate = 0;
+
+    if (tweetsRes.ok) {
+      const tweetsData: {
+        data?: Array<{
+          public_metrics: {
+            like_count: number;
+            retweet_count: number;
+            reply_count: number;
+          };
+        }>;
+        meta?: { result_count: number };
+      } = (await tweetsRes.json()) as any;
+
+      const tweets = tweetsData.data ?? [];
+      postFrequency = tweets.length / 4.3; // 30 days ÷ 4.3 = weekly
+
+      if (tweets.length > 0 && followers > 0) {
+        const totalEngagement = tweets.reduce(
+          (sum, t) =>
+            sum +
+            t.public_metrics.like_count +
+            t.public_metrics.retweet_count +
+            t.public_metrics.reply_count,
+          0
+        );
+        engagementRate = totalEngagement / tweets.length / followers;
+      }
+    }
+
+    const metrics: XMetrics = {
+      postFrequency,
+      followerGrowthRate: 0,
+      engagementRate,
+      followerCount: followers,
+      hasBio,
+    };
+
+    logger.info("X metrics fetched", { userId, followerCount: followers });
+    return metrics;
   },
 
-  computeScore(raw: Record<string, unknown>): number {
-    const followers = (raw.followersCount as number) || 0;
-    const postFreq = (raw.postFrequency as number) || 0;
-    const engagement = (raw.engagementRate as number) || 0;
+  computeScore(raw: RawPlatformMetrics): number {
+    const m = raw as XMetrics;
+    let score = 0;
 
-    // Simple weighted heuristic
-    // Followers: max 1000 for full 30pts
-    const followerScore = Math.min(followers / 1000, 1) * 30;
-    // Post frequency: 10+ tweets in dataset = full 30pts
-    const postScore = Math.min(postFreq / 10, 1) * 30;
-    // Engagement: 5+ avg interactions = full 25pts
-    const engagementScore = Math.min(engagement / 5, 1) * 25;
-    // Base score for having account connected
-    const baseScore = 15;
+    score += Math.min(m.postFrequency / 7, 1) * X_WEIGHTS.postFrequency * 100;
+    score += Math.min(m.followerGrowthRate / 0.03, 1) * X_WEIGHTS.followerGrowthRate * 100;
+    score += Math.min(m.engagementRate / 0.02, 1) * X_WEIGHTS.engagementRate * 100;
+    score += (m.hasBio ? 1 : 0) * X_WEIGHTS.hasBio * 100;
 
-    return Math.round(Math.min(100, followerScore + postScore + engagementScore + baseScore));
+    return Math.round(Math.min(score, 100));
   },
 
-  extractMetrics(raw: Record<string, unknown>): Record<string, unknown> {
+  extractMetrics(raw: RawPlatformMetrics): RawPlatformMetrics {
+    const m = raw as XMetrics;
     return {
-      followersCount: raw.followersCount,
-      tweetCount: raw.tweetCount,
-      postFrequency: raw.postFrequency,
-      engagementRate: raw.engagementRate,
+      postFrequency: m.postFrequency,
+      followerCount: m.followerCount,
+      engagementRate: m.engagementRate,
+      hasBio: m.hasBio,
     };
   },
 };

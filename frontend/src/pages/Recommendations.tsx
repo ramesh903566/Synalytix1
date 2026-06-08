@@ -1,6 +1,9 @@
-import React from 'react';
-import { RecommendationsProvider, useRecommendationsContext } from '../context/RecommendationsContext';
+import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useRecommendations, useGenerateRecommendations, useCompleteRecommendation, useDismissRecommendation } from '../hooks/useRecommendations';
+import { useRecommendationsStore } from '../store/recommendationsStore';
+import type { Recommendation } from '../types/recommendations';
+
 import ScoreOverview from '../components/recommendations/ScoreOverview';
 import FilterBar from '../components/recommendations/FilterBar';
 import GenerateButton from '../components/recommendations/GenerateButton';
@@ -11,21 +14,38 @@ import MonthlyRoadmapPanel from '../components/recommendations/MonthlyRoadmapPan
 import OpportunityAlerts from '../components/recommendations/OpportunityAlerts';
 import ProgressTracker from '../components/recommendations/ProgressTracker';
 import ExplainabilityDrawer from '../components/recommendations/ExplainabilityDrawer';
-import { Share2, Sparkles } from 'lucide-react';
+import { Sparkles } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast';
 
-function RecommendationsContent() {
-  const { 
-    recommendations, isLoading, isGenerating, lastGeneratedAt, triggerRegeneration,
-    opportunityAlerts, scores, filters, setFilters, markComplete, dismiss, openExplainer,
-    weeklyPlan, gaps, monthlyRoadmap, selectedRecommendation, closeExplainer
-  } = useRecommendationsContext();
-  const { connectedApps } = useAppContext();
+export default function Recommendations() {
+  const { connectedApps, refreshConnections } = useAppContext();
   const navigate = useNavigate();
 
-  // If no recommendations and not loading/generating, show empty state
-  const showEmptyState = !isLoading && !isGenerating && recommendations.length === 0;
+  const { data: recData, isLoading, refetch } = useRecommendations();
+  const { mutate: generate, isPending: isGenerating } = useGenerateRecommendations();
+  const { mutate: markComplete } = useCompleteRecommendation();
+  const { mutate: dismiss } = useDismissRecommendation();
+
+  const { filters, setFilters, selectedRecommendationId, setSelectedRecommendationId } = useRecommendationsStore();
+
+  useEffect(() => {
+    refreshConnections();
+  }, [refreshConnections]);
+
+  const handleGenerate = () => {
+    const focusCategory = filters.category !== 'ALL' ? filters.category : undefined;
+    generate({ forceRefresh: true, focusCategory }, {
+      onSuccess: () => toast.success("Recommendations updated!"),
+      onError: (err) => toast.error(err.message),
+    });
+  };
+
+  const showEmptyState = !isLoading && !isGenerating && (!recData || recData.recommendations.length === 0);
   const hasConnections = connectedApps.length > 0;
+
+  const recommendations = recData?.recommendations || [];
+  const selectedRecommendation = recommendations.find(r => r.id === selectedRecommendationId) || null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative">
@@ -39,12 +59,12 @@ function RecommendationsContent() {
         </div>
         <GenerateButton 
           isGenerating={isGenerating} 
-          lastGeneratedAt={lastGeneratedAt} 
-          onGenerate={() => triggerRegeneration(true)} 
+          lastGeneratedAt={recData?.scores?.computedAt || null} 
+          onGenerate={handleGenerate} 
         />
       </div>
 
-      <OpportunityAlerts alerts={opportunityAlerts} />
+      <OpportunityAlerts alerts={recData?.opportunityAlerts || []} />
 
       {isLoading ? (
         <div className="space-y-8 animate-pulse">
@@ -77,7 +97,7 @@ function RecommendationsContent() {
           </p>
           {hasConnections ? (
             <button 
-              onClick={() => triggerRegeneration(true)}
+              onClick={handleGenerate}
               className="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-medium transition-colors"
             >
               Generate Recommendations
@@ -93,7 +113,7 @@ function RecommendationsContent() {
         </div>
       ) : (
         <>
-          <ScoreOverview scores={scores} />
+          <ScoreOverview scores={recData?.scores || { career: 0, employability: 0, branding: 0, technical: 0, computedAt: "" }} />
 
           <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
             {/* Left Column (List) - 60% approx */}
@@ -104,30 +124,22 @@ function RecommendationsContent() {
                 filters={filters} 
                 onComplete={markComplete} 
                 onDismiss={dismiss} 
-                onExplain={openExplainer} 
+                onExplain={setSelectedRecommendationId} 
               />
             </div>
 
             {/* Right Column (Panels) - 40% approx */}
             <div className="xl:col-span-5 space-y-6">
-              <ProgressTracker />
-              <WeeklyPlanPanel weeklyPlan={weeklyPlan} />
-              <CareerGapPanel gaps={gaps} />
-              <MonthlyRoadmapPanel roadmap={monthlyRoadmap} />
+              <ProgressTracker completedCount={recommendations.filter(r => r.completedAt).length} />
+              <WeeklyPlanPanel weeklyPlan={recData?.weeklyPlan || []} />
+              <CareerGapPanel gaps={recData?.gaps || { skills: [], assets: [], activities: [] }} />
+              <MonthlyRoadmapPanel roadmap={recData?.monthlyRoadmap || []} />
             </div>
           </div>
         </>
       )}
 
-      <ExplainabilityDrawer recommendation={selectedRecommendation} onClose={closeExplainer} />
+      <ExplainabilityDrawer recommendation={selectedRecommendation} onClose={() => setSelectedRecommendationId(null)} />
     </div>
-  );
-}
-
-export default function Recommendations() {
-  return (
-    <RecommendationsProvider>
-      <RecommendationsContent />
-    </RecommendationsProvider>
   );
 }

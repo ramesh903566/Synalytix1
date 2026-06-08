@@ -1,96 +1,172 @@
-import { PlatformConnector } from './types';
-import { ConnectionService } from '../../../services/connectionService';
-import { LeetCodeService } from '../../../services/platformServices';
-import { LEETCODE_SCORE_WEIGHTS } from '../constants';
+import type { PlatformConnector, RawPlatformMetrics } from "./types";
+import { LEETCODE_WEIGHTS } from "../constants";
+import { supabase as db } from "../../../lib/supabase";
+import { logger } from "../../../lib/logger";
+
+interface LeetCodeMetrics extends RawPlatformMetrics {
+  totalSolved: number;
+  easySolved: number;
+  mediumSolved: number;
+  hardSolved: number;
+  hardRatio: number;
+  contestsParticipated: number;
+  contestRating: number;
+  streakDays: number;
+  acceptanceRate: number;
+}
+
+const LEETCODE_GQL = "https://leetcode.com/graphql";
+
+async function gql<T>(query: string, variables: Record<string, unknown> = {}): Promise<T> {
+  const res = await fetch(LEETCODE_GQL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query, variables }),
+  });
+  if (!res.ok) throw new Error(`LeetCode GraphQL error: ${res.status}`);
+  const json = (await res.json()) as any;
+  if (json.errors) throw new Error(json.errors[0].message);
+  return json.data as T;
+}
 
 export const leetcodeConnector: PlatformConnector = {
-  slug: 'leetcode',
-  displayName: 'LeetCode',
+  slug: "leetcode",
+  displayName: "LeetCode",
 
   async isConnected(userId: string): Promise<boolean> {
-    return ConnectionService.isConnected(userId, 'leetcode');
+    const { data } = await db
+      .from("user_profiles")
+      .select("leetcode_handle")
+      .eq("id", userId)
+      .single();
+    return !!data?.leetcode_handle;
   },
 
-  async fetchRawData(userId: string): Promise<Record<string, unknown>> {
-    const conn = await ConnectionService.getByUserAndPlatform(userId, 'leetcode');
-    if (!conn) throw new Error('LeetCode not connected');
+  async fetchRawData(userId: string): Promise<RawPlatformMetrics> {
+    const { data: profile } = await db
+      .from("user_profiles")
+      .select("leetcode_handle")
+      .eq("id", userId)
+      .single();
 
-    const username = conn.platform_username;
-    const [stats, submissions] = await Promise.all([
-      LeetCodeService.getStats(username),
-      LeetCodeService.getRecentSubmissions(username, 20),
-    ]);
+    if (!profile?.leetcode_handle) throw new Error("LeetCode handle not set");
+    const username = profile.leetcode_handle;
 
-    // Compute streak from submissions
-    const submissionDates = submissions
-      .filter(s => s.status_display === 'Accepted')
-      .map(s => new Date(s.timestamp).toDateString());
-    const uniqueDays = [...new Set(submissionDates)];
+    const statsData = await gql<{
+      matchedUser: {
+        submitStats: {
+          acSubmissionNum: Array<{ difficulty: string; count: number }>;
+        };
+        profile: { reputation: number };
+      };
+    }>(
+      `query userStats($username: String!) {
+        matchedUser(username: $username) {
+          submitStats {
+            acSubmissionNum { difficulty count }
+          }
+          profile { reputation }
+        }
+      }`,
+      { username }
+    );
 
+    const stats = statsData.matchedUser.submitStats.acSubmissionNum;
+    const easy = stats.find((s) => s.difficulty === "Easy")?.count ?? 0;
+    const medium = stats.find((s) => s.difficulty === "Medium")?.count ?? 0;
+    const hard = stats.find((s) => s.difficulty === "Hard")?.count ?? 0;
+    const total = easy + medium + hard;
+
+    const contestData = await gql<{
+      userContestRanking: { rating: number; attendedContestsCount: number } | null;
+    }>(
+      `query contestRating($username: String!) {
+        userContestRanking(username: $username) {
+          rating
+          attendedContestsCount
+        }
+      }`,
+      { username }
+    );
+
+    const contestRanking = contestData.userContestRanking;
+
+    const calData = await gql<{
+      matchedUser: {
+        submissionCalendar: string;
+      };
+    }>(
+      `query streak($username: String!) {
+        matchedUser(username: $username) {
+          submissionCalendar
+        }
+      }`,
+      { username }
+    );
+
+    const calendar: Record<string, number> = JSON.parse(
+      calData.matchedUser.submissionCalendar
+    );
     let streakDays = 0;
-    const today = new Date();
+    const todayTs = Math.floor(Date.now() / 1000);
     for (let i = 0; i < 60; i++) {
-      const d = new Date(today);
-      d.setDate(d.getDate() - i);
-      if (uniqueDays.includes(d.toDateString())) {
+      const dayTs = todayTs - i * 86400;
+      const dayKey = String(dayTs - (dayTs % 86400));
+      if (calendar[dayKey]) {
         streakDays++;
       } else if (i > 0) {
         break;
       }
     }
 
-    // Contest participation: approximate from ranking
-    const hasContestRank = stats.ranking > 0 && stats.ranking < 500000;
-
-    return {
-      stats,
-      submissions: submissions.slice(0, 10),
-      problemsSolved: stats.total_solved,
-      easySolved: stats.easy_solved,
-      mediumSolved: stats.medium_solved,
-      hardSolved: stats.hard_solved,
-      totalSubmissions: stats.total_submissions,
-      acceptanceRate: stats.acceptance_rate,
-      ranking: stats.ranking,
+    const metrics: LeetCodeMetrics = {
+      totalSolved: total,
+      easySolved: easy,
+      mediumSolved: medium,
+      hardSolved: hard,
+      hardRatio: total > 0 ? hard / total : 0,
+      contestsParticipated: contestRanking?.attendedContestsCount ?? 0,
+      contestRating: contestRanking?.rating ?? 0,
       streakDays,
-      hardRatio: stats.total_solved > 0 ? stats.hard_solved / stats.total_solved : 0,
-      hasContestRank,
+      acceptanceRate: 0,
     };
+
+    logger.info("LeetCode metrics fetched", { userId, totalSolved: total });
+    return metrics;
   },
 
-  computeScore(raw: Record<string, unknown>): number {
-    const problemsSolved = (raw.problemsSolved as number) || 0;
-    const hardRatio = (raw.hardRatio as number) || 0;
-    const hasContest = (raw.hasContestRank as boolean) || false;
-    const streakDays = (raw.streakDays as number) || 0;
-    const acceptanceRate = (raw.acceptanceRate as number) || 0;
+  computeScore(raw: RawPlatformMetrics): number {
+    const m = raw as LeetCodeMetrics;
+    let score = 0;
 
-    const w = LEETCODE_SCORE_WEIGHTS;
+    score += Math.min(m.totalSolved / 300, 1) * LEETCODE_WEIGHTS.problemsSolved * 100;
+    score += Math.min(m.hardRatio / 0.20, 1) * LEETCODE_WEIGHTS.hardRatio * 100;
 
-    // Problems solved: max 300
-    const solvedScore = Math.min(problemsSolved / 300, 1) * w.problemsSolved * 100;
-    // Hard ratio: 20%+ is excellent
-    const hardScore = Math.min(hardRatio / 0.2, 1) * w.hardRatio * 100;
-    // Contest participation: binary
-    const contestScore = (hasContest ? 1 : 0) * w.contestParticipation * 100;
-    // Streak: max 14 days
-    const streakScore = Math.min(streakDays / 14, 1) * w.streakDays * 100;
-    // Acceptance rate: max 70%
-    const acceptScore = Math.min(acceptanceRate / 70, 1) * w.acceptanceRate * 100;
+    const contestScore =
+      m.contestsParticipated === 0
+        ? 0
+        : m.contestRating >= 1800
+        ? 1
+        : m.contestRating >= 1400
+        ? 0.6
+        : 0.3;
+    score += contestScore * LEETCODE_WEIGHTS.contestParticipation * 100;
 
-    return Math.round(Math.min(100, solvedScore + hardScore + contestScore + streakScore + acceptScore));
+    score += Math.min(m.streakDays / 30, 1) * LEETCODE_WEIGHTS.streakDays * 100;
+    score += Math.min(m.acceptanceRate / 0.55, 1) * LEETCODE_WEIGHTS.acceptanceRate * 100;
+
+    return Math.round(Math.min(score, 100));
   },
 
-  extractMetrics(raw: Record<string, unknown>): Record<string, unknown> {
+  extractMetrics(raw: RawPlatformMetrics): RawPlatformMetrics {
+    const m = raw as LeetCodeMetrics;
     return {
-      problemsSolved: raw.problemsSolved,
-      easySolved: raw.easySolved,
-      mediumSolved: raw.mediumSolved,
-      hardSolved: raw.hardSolved,
-      acceptanceRate: raw.acceptanceRate,
-      ranking: raw.ranking,
-      streakDays: raw.streakDays,
-      hardRatio: raw.hardRatio,
+      totalSolved: m.totalSolved,
+      hardSolved: m.hardSolved,
+      hardRatio: m.hardRatio,
+      contestsParticipated: m.contestsParticipated,
+      contestRating: m.contestRating,
+      streakDays: m.streakDays,
     };
   },
 };

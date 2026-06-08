@@ -1,80 +1,106 @@
-import { PlatformConnector } from './types';
-import { ConnectionService } from '../../../services/connectionService';
-import { LinkedInService } from '../../../services/platformServices';
-import { LINKEDIN_SCORE_WEIGHTS } from '../constants';
+import type { PlatformConnector, RawPlatformMetrics } from "./types";
+import { LINKEDIN_WEIGHTS } from "../constants";
+import { supabase as db } from "../../../lib/supabase";
+import { logger } from "../../../lib/logger";
+
+interface LinkedInMetrics extends RawPlatformMetrics {
+  profileCompleteness: number;  // 0–1
+  hasAboutSection: boolean;
+  postFrequencyPerMonth: number;
+  followerGrowthRate: number;
+  engagementRate: number;
+  followerCount: number;
+}
 
 export const linkedinConnector: PlatformConnector = {
-  slug: 'linkedin',
-  displayName: 'LinkedIn',
+  slug: "linkedin",
+  displayName: "LinkedIn",
 
   async isConnected(userId: string): Promise<boolean> {
-    return ConnectionService.isConnected(userId, 'linkedin');
+    const { data } = await db
+      .from("platform_connections")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("platform", "linkedin")
+      .single();
+    return !!data;
   },
 
-  async fetchRawData(userId: string): Promise<Record<string, unknown>> {
-    const conn = await ConnectionService.getByUserAndPlatform(userId, 'linkedin');
-    if (!conn) throw new Error('LinkedIn not connected');
+  async fetchRawData(userId: string): Promise<RawPlatformMetrics> {
+    const { data: conn } = await db
+      .from("platform_connections")
+      .select("access_token_encrypted, metadata")
+      .eq("user_id", userId)
+      .eq("platform", "linkedin")
+      .single();
 
-    const [profile, posts] = await Promise.all([
-      LinkedInService.getProfile(conn.decrypted_access_token),
-      LinkedInService.getPostAnalytics(conn.decrypted_access_token, conn.platform_user_id),
-    ]);
+    if (!conn) throw new Error("LinkedIn not connected");
 
-    // Profile completeness heuristic
-    const hasFirstName = !!profile.first_name;
-    const hasLastName = !!profile.last_name;
-    const hasHeadline = !!profile.headline;
-    const hasPhoto = !!profile.profile_picture_url;
-    const completenessFactors = [hasFirstName, hasLastName, hasHeadline, hasPhoto];
-    const profileCompleteness = completenessFactors.filter(Boolean).length / completenessFactors.length;
+    const { decryptToken } = await import("../../../lib/crypto");
+    const token = decryptToken(conn.access_token_encrypted);
 
-    // Post frequency: posts per month (last 30 days)
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
-    const recentPosts = posts.filter(p => new Date(p.created_at) > thirtyDaysAgo);
-    const postFrequency = recentPosts.length;
+    const profileRes = await fetch("https://api.linkedin.com/v2/me?projection=(id,firstName,lastName,summary,headline,positions,educations,skills)", {
+      headers: { Authorization: `Bearer ${token}` },
+    });
 
-    // Engagement rate (likes + comments per post)
-    const totalEngagement = recentPosts.reduce((sum, p) => sum + p.likes + p.comments, 0);
-    const engagementRate = recentPosts.length > 0 ? totalEngagement / recentPosts.length : 0;
+    let profileCompleteness = 0.5;
+    let hasAboutSection = false;
 
-    return {
-      profile,
-      posts: posts.slice(0, 10),
+    if (profileRes.ok) {
+      const profile: {
+        summary?: string;
+        headline?: string;
+        positions?: { values?: unknown[] };
+        educations?: { values?: unknown[] };
+        skills?: { values?: unknown[] };
+      } = (await profileRes.json()) as any;
+
+      const fields = [
+        !!profile.summary,
+        !!profile.headline,
+        (profile.positions?.values?.length ?? 0) > 0,
+        (profile.educations?.values?.length ?? 0) > 0,
+        (profile.skills?.values?.length ?? 0) > 0,
+      ];
+      profileCompleteness = fields.filter(Boolean).length / fields.length;
+      hasAboutSection = !!profile.summary;
+    }
+
+    const cached = (conn.metadata as Record<string, unknown> | null) ?? {};
+
+    const metrics: LinkedInMetrics = {
       profileCompleteness,
-      postFrequency,
-      engagementRate,
-      hasAboutSection: hasHeadline,
-      followerGrowthRate: 0, // Not available via LinkedIn API
+      hasAboutSection,
+      postFrequencyPerMonth: (cached.postFrequencyPerMonth as number) ?? 0,
+      followerGrowthRate: (cached.followerGrowthRate as number) ?? 0,
+      engagementRate: (cached.engagementRate as number) ?? 0,
+      followerCount: (cached.followerCount as number) ?? 0,
     };
+
+    logger.info("LinkedIn metrics fetched", { userId, profileCompleteness });
+    return metrics;
   },
 
-  computeScore(raw: Record<string, unknown>): number {
-    const completeness = (raw.profileCompleteness as number) || 0;
-    const postFreq = (raw.postFrequency as number) || 0;
-    const followerGrowth = (raw.followerGrowthRate as number) || 0;
-    const engagement = (raw.engagementRate as number) || 0;
-    const hasAbout = (raw.hasAboutSection as boolean) || false;
+  computeScore(raw: RawPlatformMetrics): number {
+    const m = raw as LinkedInMetrics;
+    let score = 0;
 
-    const w = LINKEDIN_SCORE_WEIGHTS;
+    score += m.profileCompleteness * LINKEDIN_WEIGHTS.profileCompleteness * 100;
+    score += Math.min(m.postFrequencyPerMonth / 4, 1) * LINKEDIN_WEIGHTS.postFrequencyPerMonth * 100;
+    score += Math.min(m.followerGrowthRate / 0.05, 1) * LINKEDIN_WEIGHTS.followerGrowthRate * 100;
+    score += Math.min(m.engagementRate / 0.03, 1) * LINKEDIN_WEIGHTS.engagementRate * 100;
+    score += (m.hasAboutSection ? 1 : 0) * LINKEDIN_WEIGHTS.hasAboutSection * 100;
 
-    const completenessScore = completeness * w.profileCompleteness * 100;
-    // Post frequency: 4+ posts/month = full score
-    const postScore = Math.min(postFreq / 4, 1) * w.postFrequencyPerMonth * 100;
-    // Follower growth: not available, use base score
-    const growthScore = Math.min(followerGrowth / 5, 1) * w.followerGrowthRate * 100;
-    // Engagement: 10+ avg interactions = full
-    const engagementScore = Math.min(engagement / 10, 1) * w.engagementRate * 100;
-    const aboutScore = (hasAbout ? 1 : 0) * w.hasAboutSection * 100;
-
-    return Math.round(Math.min(100, completenessScore + postScore + growthScore + engagementScore + aboutScore));
+    return Math.round(Math.min(score, 100));
   },
 
-  extractMetrics(raw: Record<string, unknown>): Record<string, unknown> {
+  extractMetrics(raw: RawPlatformMetrics): RawPlatformMetrics {
+    const m = raw as LinkedInMetrics;
     return {
-      profileCompleteness: raw.profileCompleteness,
-      postFrequency: raw.postFrequency,
-      engagementRate: raw.engagementRate,
-      hasAboutSection: raw.hasAboutSection,
+      profileCompleteness: m.profileCompleteness,
+      hasAboutSection: m.hasAboutSection,
+      postFrequencyPerMonth: m.postFrequencyPerMonth,
+      followerCount: m.followerCount,
     };
   },
 };
